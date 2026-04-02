@@ -31,20 +31,63 @@ $this->params['breadcrumbs'][] = $this->title;
             ['class' => 'yii\grid\SerialColumn'],
 
             'id',
-            'solicitacao_id',
-            'disciplina_origem_nome',
-            'disciplina_origem_carga_horaria',
-            'disciplina_origem_ementa:ntext',
-            //'instituicao_origem',
-            //'disciplina_destino_id',
-            //'parecer',
-            //'justificativa:ntext',
-            //'data_analise',
+
             [
-                'class' => ActionColumn::className(),
-                'urlCreator' => function ($action, ItemEquivalencia $model, $key, $index, $column) {
-                    return Url::toRoute([$action, 'id' => $model->id]);
-                 }
+                'label' => 'Protocolo da Solicitação',
+                'value' => function ($model) {
+                    return $model->solicitacao ? $model->solicitacao->numero_protocolo : '-';
+                }
+            ],
+
+            [
+                'attribute' => 'disciplina_origem_nome',
+                'label' => 'Disciplina de Origem',
+            ],
+
+            [
+                'attribute' => 'disciplina_origem_carga_horaria',
+                'label' => 'CH Origem',
+            ],
+
+            [
+                'label' => 'Disciplina IFNMG',
+                'value' => function ($model) {
+                    return $model->disciplinaDestino ? $model->disciplinaDestino->nome : '-';
+                }
+            ],
+
+            [
+                'attribute' => 'instituicao_origem',
+                'label' => 'Instituição de Origem',
+            ],
+
+            [
+                'attribute' => 'parecer',
+                'label' => 'Parecer',
+                'format' => 'raw',
+                'value' => function ($model) {
+                    return match ($model->parecer) {
+                        'PENDENTE' => '<span class="badge bg-warning text-dark">Pendente</span>',
+                        'DEFERIDO' => '<span class="badge bg-success">Deferido</span>',
+                        'INDEFERIDO' => '<span class="badge bg-danger">Indeferido</span>',
+                        default => Html::encode($model->parecer),
+                    };
+                }
+            ],
+
+            [
+                'attribute' => 'data_analise',
+                'label' => 'Data da Análise',
+                'value' => function ($model) {
+                    return $model->data_analise
+                        ? Yii::$app->formatter->asDatetime($model->data_analise, 'php:d/m/Y H:i')
+                        : '-';
+                }
+            ],
+
+            [
+                'class' => 'yii\grid\ActionColumn',
+                'header' => 'Ações',
             ],
         ],
     ]); ?>
