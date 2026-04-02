@@ -48,8 +48,8 @@ O sistema foi modelado com base nas seguintes entidades principais:
 
 ### 1. Clonar o projeto
 ```bash
-git clone <https://github.com/andref03/modulo-aproveitamento-cajui>
-cd <modulo-aproveitamento-cajui>
+git clone git@github.com:andref03/modulo-aproveitamento-cajui.git
+cd modulo-aproveitamento-cajui
 ```
 
 ### 2. Instalar dependências
