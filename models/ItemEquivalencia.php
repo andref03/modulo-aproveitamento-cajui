@@ -49,14 +49,22 @@ class ItemEquivalencia extends \yii\db\ActiveRecord
             [['data_analise'], 'safe'],
 
             [['disciplina_origem_nome', 'instituicao_origem'], 'string', 'max' => 150],
-            [['parecer'], 'string', 'max' => 15],
-
-            [['disciplina_origem_carga_horaria'], 'integer', 'min' => 1],
+            [['parecer'], 'string', 'max' => 20],
 
             [['parecer'], 'in', 'range' => ['PENDENTE', 'DEFERIDO', 'INDEFERIDO']],
 
+            [['disciplina_origem_carga_horaria'], 'integer', 'min' => 1],
+
             [['disciplina_destino_id'], 'exist', 'skipOnError' => true, 'targetClass' => DisciplinaIfnmg::class, 'targetAttribute' => ['disciplina_destino_id' => 'id']],
             [['solicitacao_id'], 'exist', 'skipOnError' => true, 'targetClass' => SolicitacaoAproveitamento::class, 'targetAttribute' => ['solicitacao_id' => 'id']],
+
+            [['parecer'], 'validarCargaHorariaParaDeferimento'],
+            
+            [['justificativa'], 'required', 'when' => function($model) {
+                return $model->parecer === 'INDEFERIDO';
+            }, 'whenClient' => "function (attribute, value) {
+                return $('#itemequivalencia-parecer').val() === 'INDEFERIDO';
+            }"],
         ];
     }
 
@@ -105,11 +113,35 @@ class ItemEquivalencia extends \yii\db\ActiveRecord
             return false;
         }
 
-        if (!$insert && $this->parecer !== 'PENDENTE' && empty($this->data_analise)) {
+        if (in_array($this->parecer, ['DEFERIDO', 'INDEFERIDO']) && empty($this->data_analise)) {
             $this->data_analise = date('Y-m-d H:i:s');
         }
 
         return true;
-}
+    }
+
+    public function getParecerFormatado()
+    {
+        return match ($this->parecer) {
+            'PENDENTE' => 'Pendente',
+            'DEFERIDO' => 'Deferido',
+            'INDEFERIDO' => 'Indeferido',
+            default => $this->parecer,
+        };
+    }
+
+    public function validarCargaHorariaParaDeferimento($attribute, $params)
+    {
+        if ($this->parecer === 'DEFERIDO') {
+            $disciplinaDestino = $this->disciplinaDestino;
+
+            if ($disciplinaDestino && $this->disciplina_origem_carga_horaria < $disciplinaDestino->carga_horaria) {
+                $this->addError(
+                    'parecer',
+                    'Não é permitido deferir equivalência quando a carga horária da disciplina de origem é inferior à da disciplina de destino.'
+                );
+            }
+        }
+    }
 
 }
