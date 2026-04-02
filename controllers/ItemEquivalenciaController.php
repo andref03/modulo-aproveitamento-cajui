@@ -72,6 +72,13 @@ class ItemEquivalenciaController extends Controller
 
         if ($solicitacao_id !== null) {
             $model->solicitacao_id = $solicitacao_id;
+
+            $solicitacao = \app\models\SolicitacaoAproveitamento::findOne($solicitacao_id);
+
+            if ($solicitacao && !$solicitacao->podeEditar()) {
+                Yii::$app->session->setFlash('error', 'Não é possível adicionar itens a esta solicitação.');
+                return $this->redirect(['solicitacao-aproveitamento/view', 'id' => $solicitacao_id]);
+            }
         }
 
         if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
@@ -97,9 +104,20 @@ class ItemEquivalenciaController extends Controller
     {
         $model = $this->findModel($id);
 
-        if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
-            Yii::$app->session->setFlash('success', 'Item atualizado com sucesso.');
-            return $this->redirect(['solicitacao-aproveitamento/update', 'id' => $model->solicitacao_id]);
+        if (!$model->solicitacao->podeEditar() && $model->solicitacao->status !== 'EM_ANALISE') {
+            Yii::$app->session->setFlash('error', 'Este item não pode mais ser editado.');
+            return $this->redirect(['solicitacao-aproveitamento/view', 'id' => $model->solicitacao_id]);
+        }
+
+        if ($this->request->isPost) {
+            $model->load($this->request->post());
+
+            if ($model->save()) {
+                Yii::$app->session->setFlash('success', 'Item atualizado com sucesso.');
+                return $this->redirect(['solicitacao-aproveitamento/update', 'id' => $model->solicitacao_id]);
+            } else {
+                dd($model->errors);
+            }
         }
 
         return $this->render('update', [
@@ -118,6 +136,11 @@ class ItemEquivalenciaController extends Controller
     {
         $model = $this->findModel($id);
         $solicitacaoId = $model->solicitacao_id;
+
+        if (!$model->solicitacao->podeEditar()) {
+            Yii::$app->session->setFlash('error', 'Este item não pode mais ser removido.');
+            return $this->redirect(['solicitacao-aproveitamento/view', 'id' => $solicitacaoId]);
+        }
 
         $model->delete();
 
