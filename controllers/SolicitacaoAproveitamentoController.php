@@ -110,7 +110,7 @@ class SolicitacaoAproveitamentoController extends Controller
 
         if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
             Yii::$app->session->setFlash('success', 'Solicitação atualizada com sucesso.');
-            return $this->redirect(['update', 'id' => $model->id]);
+            return $this->redirect(['view', 'id' => $model->id]);
         }
 
         return $this->render('update', [

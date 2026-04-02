@@ -104,19 +104,12 @@ class ItemEquivalenciaController extends Controller
     {
         $model = $this->findModel($id);
 
-        if (!$model->solicitacao->podeEditar() && $model->solicitacao->status !== 'EM_ANALISE') {
-            Yii::$app->session->setFlash('error', 'Este item não pode mais ser editado.');
-            return $this->redirect(['solicitacao-aproveitamento/view', 'id' => $model->solicitacao_id]);
-        }
-
         if ($this->request->isPost) {
-            $model->load($this->request->post());
-
-            if ($model->save()) {
+            if ($model->load($this->request->post()) && $model->save()) {
                 Yii::$app->session->setFlash('success', 'Item atualizado com sucesso.');
                 return $this->redirect(['solicitacao-aproveitamento/update', 'id' => $model->solicitacao_id]);
             } else {
-                dd($model->errors);
+                Yii::$app->session->setFlash('error', 'Não foi possível salvar o item. Verifique os dados informados.');
             }
         }
 
@@ -135,17 +128,22 @@ class ItemEquivalenciaController extends Controller
     public function actionDelete($id)
     {
         $model = $this->findModel($id);
-        $solicitacaoId = $model->solicitacao_id;
+        $solicitacao = $model->solicitacao;
 
-        if (!$model->solicitacao->podeEditar()) {
-            Yii::$app->session->setFlash('error', 'Este item não pode mais ser removido.');
-            return $this->redirect(['solicitacao-aproveitamento/view', 'id' => $solicitacaoId]);
+        if (!$solicitacao->podeEditar()) {
+            Yii::$app->session->setFlash('error', 'Não é permitido excluir itens de uma solicitação que já foi enviada para análise.');
+            return $this->redirect(['solicitacao-aproveitamento/view', 'id' => $solicitacao->id]);
         }
 
+        if (count($solicitacao->itemEquivalencias) <= 1) {
+            Yii::$app->session->setFlash('error', 'A solicitação deve possuir pelo menos um item de equivalência.');
+            return $this->redirect(['solicitacao-aproveitamento/update', 'id' => $solicitacao->id]);
+        }
+
+        $solicitacaoId = $solicitacao->id;
         $model->delete();
 
-        Yii::$app->session->setFlash('success', 'Item removido com sucesso.');
-
+        Yii::$app->session->setFlash('success', 'Item excluído com sucesso.');
         return $this->redirect(['solicitacao-aproveitamento/update', 'id' => $solicitacaoId]);
     }
 
