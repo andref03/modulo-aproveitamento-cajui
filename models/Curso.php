@@ -46,7 +46,10 @@ class Curso extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'nome' => 'Nome do curso',
+            'nome' => 'Nome do Curso',
+            'codigo' => 'Código',
+            'nivel' => 'Nível',
+            'carga_horaria_total' => 'Carga Horária Total',
         ];
     }
 

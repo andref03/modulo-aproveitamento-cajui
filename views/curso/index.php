@@ -31,13 +31,15 @@ $this->params['breadcrumbs'][] = $this->title;
             ['class' => 'yii\grid\SerialColumn'],
 
             'id',
-            'nome',
-            'campus',
+
             [
-                'class' => ActionColumn::className(),
-                'urlCreator' => function ($action, Curso $model, $key, $index, $column) {
-                    return Url::toRoute([$action, 'id' => $model->id]);
-                 }
+                'attribute' => 'nome',
+                'label' => 'Nome do Curso',
+            ],
+
+            [
+                'class' => 'yii\grid\ActionColumn',
+                'header' => 'Ações',
             ],
         ],
     ]); ?>

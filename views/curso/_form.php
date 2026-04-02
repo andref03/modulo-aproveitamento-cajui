@@ -12,12 +12,18 @@ use yii\widgets\ActiveForm;
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'nome')->textInput(['maxlength' => true]) ?>
+    <div class="card p-3 mb-4" style="border:1px solid #ddd; border-radius:8px;">
+        <h4>Dados do Curso</h4>
 
-    <?= $form->field($model, 'campus')->textInput(['maxlength' => true]) ?>
+        <?= $form->field($model, 'nome')->textInput([
+            'maxlength' => true,
+            'placeholder' => 'Ex.: Bacharelado em Sistemas de Informação'
+        ]) ?>
+    </div>
 
     <div class="form-group">
-        <?= Html::submitButton('Save', ['class' => 'btn btn-success']) ?>
+        <?= Html::submitButton('Salvar Curso', ['class' => 'btn btn-success']) ?>
+        <?= Html::a('Voltar', ['index'], ['class' => 'btn btn-secondary']) ?>
     </div>
 
     <?php ActiveForm::end(); ?>
