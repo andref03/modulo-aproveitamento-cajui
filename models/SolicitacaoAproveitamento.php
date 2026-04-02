@@ -144,7 +144,7 @@ class SolicitacaoAproveitamento extends \yii\db\ActiveRecord
 
     public function podeEditar()
     {
-        return !in_array($this->status, ['FINALIZADA', 'CANCELADA']);
+        return $this->status === 'EM_EDICAO';
     }
 
     public function podeEnviar()
