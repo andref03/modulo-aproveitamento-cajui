@@ -158,13 +158,17 @@ class SolicitacaoAproveitamento extends \yii\db\ActiveRecord
             return false;
         }
 
+        if (count($this->itemEquivalencias) === 0) {
+            return false;
+        }
+
         foreach ($this->itemEquivalencias as $item) {
             if ($item->parecer === 'PENDENTE') {
                 return false;
             }
         }
 
-        return count($this->itemEquivalencias) > 0;
+        return true;
     }
 
     public function getResultadoFinalFormatado()
