@@ -33,7 +33,7 @@ $coordenadores = ArrayHelper::map(
         </p>
 
         <p><strong>Status:</strong>
-            <?= $model->status ? str_replace('_', ' ', $model->status) : 'EM EDIÇÃO' ?>
+            <?= $model->status ? $model->statusFormatado : 'Em edição' ?>
         </p>
 
         <?php if (!$model->isNewRecord): ?>
