@@ -4,6 +4,6 @@ return [
     'class' => 'yii\db\Connection',
     'dsn' => 'pgsql:host=localhost;port=5432;dbname=aproveitamento_estudos',
     'username' => 'postgres',
-    'password' => '',
+    'password' => 'postgres',
     'charset' => 'utf8',
 ];
