@@ -40,18 +40,13 @@ class SolicitacaoAproveitamento extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['coordenador_id', 'resultado_final', 'data_envio', 'data_finalizacao'], 'default', 'value' => null],
+            [['numero_protocolo', 'resultado_final', 'data_envio', 'data_finalizacao'], 'default', 'value' => null],
             [['status'], 'default', 'value' => 'EM_EDICAO'],
-            [['numero_protocolo', 'estudante_id'], 'required'],
-            [['estudante_id', 'coordenador_id'], 'default', 'value' => null],
+            [['estudante_id'], 'required'],
             [['estudante_id', 'coordenador_id'], 'integer'],
             [['data_criacao', 'data_envio', 'data_finalizacao'], 'safe'],
-            [['numero_protocolo'], 'string', 'max' => 50],
-            [['status'], 'string', 'max' => 20],
-            [['resultado_final'], 'string', 'max' => 25],
-            [['numero_protocolo'], 'unique'],
-            [['coordenador_id'], 'exist', 'skipOnError' => true, 'targetClass' => Coordenador::class, 'targetAttribute' => ['coordenador_id' => 'id']],
-            [['estudante_id'], 'exist', 'skipOnError' => true, 'targetClass' => Estudante::class, 'targetAttribute' => ['estudante_id' => 'id']],
+            [['numero_protocolo'], 'string', 'max' => 30],
+            [['status', 'resultado_final'], 'string', 'max' => 20],
         ];
     }
 
@@ -111,6 +106,59 @@ class SolicitacaoAproveitamento extends \yii\db\ActiveRecord
     public function getLogAcaos()
     {
         return $this->hasMany(LogAcao::class, ['solicitacao_id' => 'id']);
+    }
+
+    public function beforeValidate()
+    {
+        if ($this->isNewRecord && empty($this->status)) {
+            $this->status = 'EM_EDICAO';
+        }
+
+        return parent::beforeValidate();
+    }
+
+    public function beforeSave($insert)
+    {
+        if (!parent::beforeSave($insert)) {
+            return false;
+        }
+
+        if ($insert) {
+            if (empty($this->numero_protocolo)) {
+                $this->numero_protocolo = 'APR-' . date('YmdHis') . '-' . rand(100, 999);
+            }
+
+            if (empty($this->data_criacao)) {
+                $this->data_criacao = date('Y-m-d H:i:s');
+            }
+        }
+
+        return true;
+    }
+
+    public function podeEditar()
+    {
+        return !in_array($this->status, ['FINALIZADA', 'CANCELADA']);
+    }
+
+    public function podeEnviar()
+    {
+        return $this->status === 'EM_EDICAO' && count($this->itemEquivalencias) > 0;
+    }
+
+    public function podeFinalizar()
+    {
+        if ($this->status !== 'EM_ANALISE') {
+            return false;
+        }
+
+        foreach ($this->itemEquivalencias as $item) {
+            if ($item->parecer === 'PENDENTE') {
+                return false;
+            }
+        }
+
+        return count($this->itemEquivalencias) > 0;
     }
 
 }
