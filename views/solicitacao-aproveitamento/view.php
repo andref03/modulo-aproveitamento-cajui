@@ -26,6 +26,15 @@ $this->params['breadcrumbs'][] = $this->title;
         ]) ?>
     </p>
 
+    <?php if ($model->status === 'EM_ANALISE'): ?>
+    <?= Html::beginForm(['finalizar', 'id' => $model->id], 'post') ?>
+        <?= Html::submitButton('Finalizar Solicitação', [
+            'class' => 'btn btn-success',
+            'style' => 'margin-top:10px;'
+        ]) ?>
+    <?= Html::endForm() ?>
+    <?php endif; ?>
+
     <?= DetailView::widget([
         'model' => $model,
         'attributes' => [
