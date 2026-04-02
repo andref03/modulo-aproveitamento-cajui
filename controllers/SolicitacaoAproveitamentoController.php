@@ -42,7 +42,15 @@ class SolicitacaoAproveitamentoController extends Controller
     public function actionIndex()
     {
         $searchModel = new SolicitacaoAproveitamentoSearch();
-        $dataProvider = $searchModel->search($this->request->queryParams);
+
+        $dataProvider = new \yii\data\ActiveDataProvider([
+            'query' => \app\models\SolicitacaoAproveitamento::find()
+                ->with(['estudante', 'coordenador'])
+                ->orderBy(['id' => SORT_DESC]),
+            'pagination' => [
+                'pageSize' => 20,
+            ],
+        ]);
 
         return $this->render('index', [
             'searchModel' => $searchModel,
@@ -188,11 +196,11 @@ class SolicitacaoAproveitamentoController extends Controller
         }
 
         if ($todosDeferidos) {
-            $model->resultado_final = 'DEFERIDA';
+            $model->resultado_final = 'DEFERIDO_TOTAL';
         } elseif ($algumDeferido) {
-            $model->resultado_final = 'PARCIAL';
+            $model->resultado_final = 'DEFERIDO_PARCIAL';
         } else {
-            $model->resultado_final = 'INDEFERIDA';
+            $model->resultado_final = 'INDEFERIDO_TOTAL';
         }
 
         $model->status = 'FINALIZADA';
