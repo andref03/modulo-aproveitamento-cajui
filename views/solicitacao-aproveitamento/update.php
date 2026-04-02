@@ -26,7 +26,9 @@ $this->params['breadcrumbs'][] = 'Editar';
     <h3>Itens de Equivalência</h3>
 
     <p>
-        <?= Html::a('Adicionar Item', ['item-equivalencia/create', 'solicitacao_id' => $model->id], ['class' => 'btn btn-primary']) ?>
+        <?php if ($model->podeEditar()): ?>
+            <?= Html::a('Adicionar Item', ['item-equivalencia/create', 'solicitacao_id' => $model->id], ['class' => 'btn btn-primary']) ?>
+        <?php endif; ?>
     </p>
 
     <?php if (count($model->itemEquivalencias) > 0): ?>
@@ -51,8 +53,8 @@ $this->params['breadcrumbs'][] = 'Editar';
                 [
                     'class' => 'yii\grid\ActionColumn',
                     'controller' => 'item-equivalencia',
-                    'template' => '{view} {update} {delete}',
-                ],
+                    'template' => $model->podeEditar() ? '{view} {update} {delete}' : '{view}',
+                ]
             ],
         ]); ?>
     <?php else: ?>
@@ -62,12 +64,16 @@ $this->params['breadcrumbs'][] = 'Editar';
     <?php endif; ?>
 
     <div style="margin-top: 20px;">
-        <?= Html::beginForm(['enviar', 'id' => $model->id], 'post') ?>
-            <?= Html::submitButton('Enviar para Análise', [
-                'class' => 'btn btn-warning',
-                'disabled' => !$model->podeEnviar(),
-            ]) ?>
-        <?= Html::endForm() ?>
+        <?php if ($model->status === 'EM_EDICAO'): ?>
+            <div style="margin-top: 20px;">
+                <?= Html::beginForm(['enviar', 'id' => $model->id], 'post') ?>
+                    <?= Html::submitButton('Enviar para Análise', [
+                        'class' => 'btn btn-warning',
+                        'disabled' => !$model->podeEnviar(),
+                    ]) ?>
+                <?= Html::endForm() ?>
+            </div>
+        <?php endif; ?>
     </div>
 
 </div>

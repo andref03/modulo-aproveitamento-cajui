@@ -33,7 +33,7 @@ $this->params['breadcrumbs'][] = $this->title;
         ]) ?>
     </p>
 
-    <?php if ($model->status === 'EM_ANALISE'): ?>
+    <?php if ($model->podeFinalizar()): ?>
         <p>
             <?= Html::beginForm(['finalizar', 'id' => $model->id], 'post') ?>
                 <?= Html::submitButton('Finalizar Solicitação', [
