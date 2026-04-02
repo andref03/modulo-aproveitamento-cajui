@@ -192,4 +192,34 @@ class SolicitacaoAproveitamento extends \yii\db\ActiveRecord
         };
     }
 
+    /**
+     * Retorna a data de criação formatada no padrão brasileiro (dd/mm/yyyy HH:ii)
+     */
+    public function getDataCriacaoFormatada()
+    {
+        return $this->data_criacao
+            ? Yii::$app->formatter->asDatetime($this->data_criacao, 'php:d/m/Y H:i')
+            : '-';
+    }
+
+    /**
+     * Retorna a data de envio formatada no padrão brasileiro (dd/mm/yyyy HH:ii)
+     */
+    public function getDataEnvioFormatada()
+    {
+        return $this->data_envio
+            ? Yii::$app->formatter->asDatetime($this->data_envio, 'php:d/m/Y H:i')
+            : '-';
+    }
+
+    /**
+     * Retorna a data de finalização formatada no padrão brasileiro (dd/mm/yyyy HH:ii)
+     */
+    public function getDataFinalizacaoFormatada()
+    {
+        return $this->data_finalizacao
+            ? Yii::$app->formatter->asDatetime($this->data_finalizacao, 'php:d/m/Y H:i')
+            : '-';
+    }
+
 }

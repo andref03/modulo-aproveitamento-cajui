@@ -67,9 +67,27 @@ $this->params['breadcrumbs'][] = $this->title;
                 'label' => 'Resultado Final',
                 'value' => $model->resultadoFinalFormatado,
             ],
-            'data_criacao',
-            'data_envio',
-            'data_finalizacao',
+            [
+                'attribute' => 'data_criacao',
+                'label' => 'Data de Criação',
+                'value' => $model->data_criacao
+                    ? Yii::$app->formatter->asDatetime($model->data_criacao, 'php:d/m/Y H:i')
+                    : '-',
+            ],
+            [
+                'attribute' => 'data_envio',
+                'label' => 'Data de Envio',
+                'value' => $model->data_envio
+                    ? Yii::$app->formatter->asDatetime($model->data_envio, 'php:d/m/Y H:i')
+                    : '-',
+            ],
+            [
+                'attribute' => 'data_finalizacao',
+                'label' => 'Data de Finalização',
+                'value' => $model->data_finalizacao
+                    ? Yii::$app->formatter->asDatetime($model->data_finalizacao, 'php:d/m/Y H:i')
+                    : '-',
+            ],
         ],
     ]) ?>
 

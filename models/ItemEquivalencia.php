@@ -155,4 +155,11 @@ class ItemEquivalencia extends \yii\db\ActiveRecord
         }
     }
 
+    public function getDataAnaliseFormatada()
+    {
+        return $this->data_analise
+            ? Yii::$app->formatter->asDatetime($this->data_analise, 'php:d/m/Y H:i')
+            : 'Ainda não analisado';
+    }
+
 }
