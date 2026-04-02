@@ -31,20 +31,33 @@ $this->params['breadcrumbs'][] = $this->title;
             ['class' => 'yii\grid\SerialColumn'],
 
             'id',
-            'nome',
-            'matricula',
-            'email:email',
+
+            [
+                'attribute' => 'nome',
+                'label' => 'Nome do Estudante',
+            ],
+
+            [
+                'attribute' => 'matricula',
+                'label' => 'Matrícula',
+            ],
+
+            [
+                'attribute' => 'email',
+                'label' => 'E-mail',
+                'format' => 'email',
+            ],
+
             [
                 'label' => 'Curso',
                 'value' => function ($model) {
                     return $model->curso ? $model->curso->nome : '-';
                 }
             ],
+
             [
-                'class' => ActionColumn::className(),
-                'urlCreator' => function ($action, Estudante $model, $key, $index, $column) {
-                    return Url::toRoute([$action, 'id' => $model->id]);
-                 }
+                'class' => 'yii\grid\ActionColumn',
+                'header' => 'Ações',
             ],
         ],
     ]); ?>
