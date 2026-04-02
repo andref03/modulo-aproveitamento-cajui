@@ -38,7 +38,12 @@ $this->params['breadcrumbs'][] = $this->title;
             'disciplina_destino_id',
             'parecer',
             'justificativa:ntext',
-            'data_analise',
+            [
+                'attribute' => 'data_analise',
+                'value' => $model->data_analise
+                    ? Yii::$app->formatter->asDatetime($model->data_analise, 'php:d/m/Y H:i')
+                    : 'Ainda não analisado',
+            ],
         ],
     ]) ?>
 

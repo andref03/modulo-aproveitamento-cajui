@@ -113,8 +113,19 @@ class ItemEquivalencia extends \yii\db\ActiveRecord
             return false;
         }
 
-        if (in_array($this->parecer, ['DEFERIDO', 'INDEFERIDO']) && empty($this->data_analise)) {
+        $parecerAnterior = $this->getOldAttribute('parecer');
+
+        // Se o parecer mudou para analisado, registra data/hora
+        if (
+            $this->parecer !== $parecerAnterior &&
+            in_array($this->parecer, ['DEFERIDO', 'INDEFERIDO'])
+        ) {
             $this->data_analise = date('Y-m-d H:i:s');
+        }
+
+        // Se voltou para pendente, limpa data
+        if ($this->parecer === 'PENDENTE') {
+            $this->data_analise = null;
         }
 
         return true;

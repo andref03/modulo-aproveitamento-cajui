@@ -87,17 +87,13 @@ $solicitacoes = ArrayHelper::map(
             'PENDENTE' => 'Pendente',
             'DEFERIDO' => 'Deferido',
             'INDEFERIDO' => 'Indeferido',
-        ]) ?>
+        ], ['prompt' => 'Selecione o parecer']) ?>
 
         <?= $form->field($model, 'justificativa')->textarea([
             'rows' => 4,
             'placeholder' => 'Obrigatória apenas em caso de indeferimento'
         ]) ?>
 
-        <?= $form->field($model, 'data_analise')->textInput([
-            'type' => 'datetime-local',
-            'value' => $model->data_analise ? date('Y-m-d\TH:i', strtotime($model->data_analise)) : ''
-        ]) ?>
     </div>
 
     <div class="form-group">
