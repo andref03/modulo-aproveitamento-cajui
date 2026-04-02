@@ -41,13 +41,20 @@ class ItemEquivalencia extends \yii\db\ActiveRecord
         return [
             [['disciplina_origem_ementa', 'justificativa', 'data_analise'], 'default', 'value' => null],
             [['parecer'], 'default', 'value' => 'PENDENTE'],
+
             [['solicitacao_id', 'disciplina_origem_nome', 'disciplina_origem_carga_horaria', 'instituicao_origem', 'disciplina_destino_id'], 'required'],
-            [['solicitacao_id', 'disciplina_origem_carga_horaria', 'disciplina_destino_id'], 'default', 'value' => null],
+
             [['solicitacao_id', 'disciplina_origem_carga_horaria', 'disciplina_destino_id'], 'integer'],
             [['disciplina_origem_ementa', 'justificativa'], 'string'],
             [['data_analise'], 'safe'],
+
             [['disciplina_origem_nome', 'instituicao_origem'], 'string', 'max' => 150],
             [['parecer'], 'string', 'max' => 15],
+
+            [['disciplina_origem_carga_horaria'], 'integer', 'min' => 1],
+
+            [['parecer'], 'in', 'range' => ['PENDENTE', 'DEFERIDO', 'INDEFERIDO']],
+
             [['disciplina_destino_id'], 'exist', 'skipOnError' => true, 'targetClass' => DisciplinaIfnmg::class, 'targetAttribute' => ['disciplina_destino_id' => 'id']],
             [['solicitacao_id'], 'exist', 'skipOnError' => true, 'targetClass' => SolicitacaoAproveitamento::class, 'targetAttribute' => ['solicitacao_id' => 'id']],
         ];
@@ -60,15 +67,15 @@ class ItemEquivalencia extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'solicitacao_id' => 'Solicitacao ID',
-            'disciplina_origem_nome' => 'Disciplina Origem Nome',
-            'disciplina_origem_carga_horaria' => 'Disciplina Origem Carga Horaria',
-            'disciplina_origem_ementa' => 'Disciplina Origem Ementa',
-            'instituicao_origem' => 'Instituicao Origem',
-            'disciplina_destino_id' => 'Disciplina Destino ID',
+            'solicitacao_id' => 'Solicitação',
+            'disciplina_origem_nome' => 'Disciplina cursada anteriormente',
+            'disciplina_origem_carga_horaria' => 'Carga horária da disciplina cursada',
+            'disciplina_origem_ementa' => 'Ementa / conteúdo programático',
+            'instituicao_origem' => 'Instituição de origem',
+            'disciplina_destino_id' => 'Disciplina do IFNMG',
             'parecer' => 'Parecer',
-            'justificativa' => 'Justificativa',
-            'data_analise' => 'Data Analise',
+            'justificativa' => 'Justificativa do parecer',
+            'data_analise' => 'Data da análise',
         ];
     }
 
@@ -91,5 +98,18 @@ class ItemEquivalencia extends \yii\db\ActiveRecord
     {
         return $this->hasOne(SolicitacaoAproveitamento::class, ['id' => 'solicitacao_id']);
     }
+
+    public function beforeSave($insert)
+    {
+        if (!parent::beforeSave($insert)) {
+            return false;
+        }
+
+        if (!$insert && $this->parecer !== 'PENDENTE' && empty($this->data_analise)) {
+            $this->data_analise = date('Y-m-d H:i:s');
+        }
+
+        return true;
+}
 
 }
