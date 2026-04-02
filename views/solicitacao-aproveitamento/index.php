@@ -30,34 +30,51 @@ $this->params['breadcrumbs'][] = $this->title;
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
 
-            'id',
-            'numero_protocolo',
-            'estudante_id',
-            'coordenador_id',
+            [
+                'attribute' => 'numero_protocolo',
+                'label' => 'Protocolo',
+            ],
+            [
+                'label' => 'Estudante',
+                'value' => function ($model) {
+                    return $model->estudante ? $model->estudante->nome : '-';
+                }
+            ],
+            [
+                'label' => 'Curso',
+                'value' => function ($model) {
+                    return $model->estudante && $model->estudante->curso
+                        ? $model->estudante->curso->nome
+                        : '-';
+                }
+            ],
+            [
+                'label' => 'Coordenador',
+                'value' => function ($model) {
+                    return $model->coordenador ? $model->coordenador->nome : '-';
+                }
+            ],
             [
                 'attribute' => 'status',
+                'label' => 'Status',
                 'value' => function ($model) {
                     return $model->statusFormatado;
-                },
+                }
             ],
             [
-                'attribute' => 'resultado_final',
-                'label' => 'Resultado Final',
+                'label' => 'Itens',
                 'value' => function ($model) {
-                    return $model->resultadoFinalFormatado;
-                },
+                    return count($model->itemEquivalencias);
+                }
             ],
-            //'resultado_final',
-            //'data_criacao',
-            //'data_envio',
-            //'data_finalizacao',
+
             [
                 'class' => 'yii\grid\ActionColumn',
                 'template' => '{view} {update} {delete}',
                 'buttons' => [
                     'update' => function ($url, $model, $key) {
                         if ($model->podeEditar()) {
-                            return Html::a(
+                            return \yii\helpers\Html::a(
                                 '<span class="glyphicon glyphicon-pencil"></span>',
                                 $url,
                                 ['title' => 'Editar']
