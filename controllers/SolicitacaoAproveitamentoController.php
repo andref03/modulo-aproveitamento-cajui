@@ -152,24 +152,21 @@ class SolicitacaoAproveitamentoController extends Controller
     {
         $model = $this->findModel($id);
 
-        if (!$model->podeEditar()) {
-            Yii::$app->session->setFlash('error', 'Esta solicitação não pode mais ser enviada.');
-            return $this->redirect(['view', 'id' => $id]);
-        }
-
-        if (count($model->itemEquivalencias) === 0) {
-            Yii::$app->session->setFlash('error', 'A solicitação precisa ter pelo menos um item antes do envio.');
-            return $this->redirect(['update', 'id' => $id]);
+        if (!$model->podeEnviar()) {
+            Yii::$app->session->setFlash('error', 'A solicitação precisa ter pelo menos um item para ser enviada.');
+            return $this->redirect(['update', 'id' => $model->id]);
         }
 
         $model->status = 'EM_ANALISE';
         $model->data_envio = date('Y-m-d H:i:s');
 
         if ($model->save(false)) {
-            Yii::$app->session->setFlash('success', 'Solicitação enviada para análise.');
+            Yii::$app->session->setFlash('success', 'Solicitação enviada para análise com sucesso.');
+        } else {
+            Yii::$app->session->setFlash('error', 'Não foi possível enviar a solicitação.');
         }
 
-        return $this->redirect(['view', 'id' => $id]);
+        return $this->redirect(['view', 'id' => $model->id]);
     }
 
     public function actionFinalizar($id)
@@ -177,19 +174,18 @@ class SolicitacaoAproveitamentoController extends Controller
         $model = $this->findModel($id);
 
         if (!$model->podeFinalizar()) {
-            Yii::$app->session->setFlash('error', 'Não é possível finalizar: todos os itens devem ter parecer.');
-            return $this->redirect(['view', 'id' => $id]);
+            Yii::$app->session->setFlash('error', 'Todos os itens precisam ser analisados antes da finalização.');
+            return $this->redirect(['view', 'id' => $model->id]);
         }
-
-        $itens = $model->itemEquivalencias;
 
         $todosDeferidos = true;
         $algumDeferido = false;
 
-        foreach ($itens as $item) {
+        foreach ($model->itemEquivalencias as $item) {
             if ($item->parecer !== 'DEFERIDO') {
                 $todosDeferidos = false;
             }
+
             if ($item->parecer === 'DEFERIDO') {
                 $algumDeferido = true;
             }
@@ -208,9 +204,11 @@ class SolicitacaoAproveitamentoController extends Controller
 
         if ($model->save(false)) {
             Yii::$app->session->setFlash('success', 'Solicitação finalizada com sucesso.');
+        } else {
+            Yii::$app->session->setFlash('error', 'Não foi possível finalizar a solicitação.');
         }
 
-        return $this->redirect(['view', 'id' => $id]);
+        return $this->redirect(['view', 'id' => $model->id]);
     }
 
 }
