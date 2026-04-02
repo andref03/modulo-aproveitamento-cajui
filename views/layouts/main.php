@@ -39,9 +39,34 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
     echo Nav::widget([
         'options' => ['class' => 'navbar-nav'],
         'items' => [
-            ['label' => 'Home', 'url' => ['/site/index']],
-            ['label' => 'About', 'url' => ['/site/about']],
-            ['label' => 'Contact', 'url' => ['/site/contact']],
+            [
+                'label' => 'Home',
+                'url' => ['/site/index']
+            ],
+            [
+                'label' => 'Solicitações',
+                'url' => ['/solicitacao-aproveitamento/index']
+            ],
+            [
+                'label' => 'Itens',
+                'url' => ['/item-equivalencia/index']
+            ],
+            [
+                'label' => 'Estudantes',
+                'url' => ['/estudante/index']
+            ],
+            [
+                'label' => 'Coordenadores',
+                'url' => ['/coordenador/index']
+            ],
+            [
+                'label' => 'Cursos',
+                'url' => ['/curso/index']
+            ],
+            [
+                'label' => 'Disciplinas',
+                'url' => ['/disciplina-ifnmg/index']
+            ],
             Yii::$app->user->isGuest
                 ? ['label' => 'Login', 'url' => ['/site/login']]
                 : '<li class="nav-item">'
