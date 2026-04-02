@@ -52,10 +52,10 @@ class Estudante extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'nome' => 'Nome',
-            'matricula' => 'Matricula',
-            'email' => 'Email',
-            'curso_id' => 'Curso ID',
+            'nome' => 'Nome completo',
+            'matricula' => 'Matrícula',
+            'email' => 'E-mail',
+            'curso_id' => 'Curso',
         ];
     }
 

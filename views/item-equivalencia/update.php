@@ -5,8 +5,8 @@ use yii\helpers\Html;
 /** @var yii\web\View $this */
 /** @var app\models\ItemEquivalencia $model */
 
-$this->title = 'Update Item Equivalencia: ' . $model->id;
-$this->params['breadcrumbs'][] = ['label' => 'Item Equivalencias', 'url' => ['index']];
+$this->title = 'Editar Item: ' . $model->id;
+$this->params['breadcrumbs'][] = ['label' => 'Itens', 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $model->id, 'url' => ['view', 'id' => $model->id]];
 $this->params['breadcrumbs'][] = 'Update';
 ?>

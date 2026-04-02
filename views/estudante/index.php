@@ -18,7 +18,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
-        <?= Html::a('Create Estudante', ['create'], ['class' => 'btn btn-success']) ?>
+        <?= Html::a('Novo Estudante', ['create'], ['class' => 'btn btn-success']) ?>
     </p>
 
     <?php Pjax::begin(); ?>
@@ -34,7 +34,12 @@ $this->params['breadcrumbs'][] = $this->title;
             'nome',
             'matricula',
             'email:email',
-            'curso_id',
+            [
+                'label' => 'Curso',
+                'value' => function ($model) {
+                    return $model->curso ? $model->curso->nome : '-';
+                }
+            ],
             [
                 'class' => ActionColumn::className(),
                 'urlCreator' => function ($action, Estudante $model, $key, $index, $column) {

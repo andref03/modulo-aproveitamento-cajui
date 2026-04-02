@@ -5,8 +5,8 @@ use yii\helpers\Html;
 /** @var yii\web\View $this */
 /** @var app\models\Coordenador $model */
 
-$this->title = 'Update Coordenador: ' . $model->id;
-$this->params['breadcrumbs'][] = ['label' => 'Coordenadors', 'url' => ['index']];
+$this->title = 'Editar Coordenador: ' . $model->id;
+$this->params['breadcrumbs'][] = ['label' => 'Coordenadores', 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $model->id, 'url' => ['view', 'id' => $model->id]];
 $this->params['breadcrumbs'][] = 'Update';
 ?>

@@ -5,8 +5,8 @@ use yii\helpers\Html;
 /** @var yii\web\View $this */
 /** @var app\models\ItemEquivalencia $model */
 
-$this->title = 'Create Item Equivalencia';
-$this->params['breadcrumbs'][] = ['label' => 'Item Equivalencias', 'url' => ['index']];
+$this->title = 'Novo Item';
+$this->params['breadcrumbs'][] = ['label' => 'Itens', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="item-equivalencia-create">

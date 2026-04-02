@@ -50,9 +50,9 @@ class Coordenador extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'nome' => 'Nome',
-            'email' => 'Email',
-            'curso_id' => 'Curso ID',
+            'nome' => 'Nome completo',
+            'email' => 'E-mail',
+            'curso_id' => 'Curso',
         ];
     }
 

@@ -58,12 +58,10 @@ class DisciplinaIfnmg extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'codigo' => 'Codigo',
-            'nome' => 'Nome',
-            'carga_horaria' => 'Carga Horaria',
-            'ementa' => 'Ementa',
-            'curso_id' => 'Curso ID',
-            'pre_requisito_id' => 'Pre Requisito ID',
+            'nome' => 'Nome da disciplina',
+            'codigo' => 'Código',
+            'carga_horaria' => 'Carga horária',
+            'curso_id' => 'Curso',
         ];
     }
 

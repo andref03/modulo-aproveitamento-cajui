@@ -10,7 +10,7 @@ use yii\widgets\Pjax;
 /** @var app\models\SolicitacaoAproveitamentoSearch $searchModel */
 /** @var yii\data\ActiveDataProvider $dataProvider */
 
-$this->title = 'Solicitacao Aproveitamentos';
+$this->title = 'Solicitações';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="solicitacao-aproveitamento-index">
@@ -18,7 +18,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
-        <?= Html::a('Create Solicitacao Aproveitamento', ['create'], ['class' => 'btn btn-success']) ?>
+        <?= Html::a('Nova Solicitação', ['create'], ['class' => 'btn btn-success']) ?>
     </p>
 
     <?php Pjax::begin(); ?>

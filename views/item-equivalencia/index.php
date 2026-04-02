@@ -10,7 +10,7 @@ use yii\widgets\Pjax;
 /** @var app\models\ItemEquivalenciaSearch $searchModel */
 /** @var yii\data\ActiveDataProvider $dataProvider */
 
-$this->title = 'Item Equivalencias';
+$this->title = 'Itens';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="item-equivalencia-index">
@@ -18,7 +18,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
-        <?= Html::a('Create Item Equivalencia', ['create'], ['class' => 'btn btn-success']) ?>
+        <?= Html::a('Novo Item', ['create'], ['class' => 'btn btn-success']) ?>
     </p>
 
     <?php Pjax::begin(); ?>

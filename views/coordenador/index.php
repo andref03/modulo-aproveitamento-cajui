@@ -10,7 +10,7 @@ use yii\widgets\Pjax;
 /** @var app\models\CoordenadorSearch $searchModel */
 /** @var yii\data\ActiveDataProvider $dataProvider */
 
-$this->title = 'Coordenadors';
+$this->title = 'Coordenadores';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="coordenador-index">
@@ -18,7 +18,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
-        <?= Html::a('Create Coordenador', ['create'], ['class' => 'btn btn-success']) ?>
+        <?= Html::a('Novo Coordenador', ['create'], ['class' => 'btn btn-success']) ?>
     </p>
 
     <?php Pjax::begin(); ?>

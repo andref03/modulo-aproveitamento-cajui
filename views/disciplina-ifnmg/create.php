@@ -5,8 +5,8 @@ use yii\helpers\Html;
 /** @var yii\web\View $this */
 /** @var app\models\DisciplinaIfnmg $model */
 
-$this->title = 'Create Disciplina Ifnmg';
-$this->params['breadcrumbs'][] = ['label' => 'Disciplina Ifnmgs', 'url' => ['index']];
+$this->title = 'Nova Disciplina';
+$this->params['breadcrumbs'][] = ['label' => 'Disciplinas', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="disciplina-ifnmg-create">

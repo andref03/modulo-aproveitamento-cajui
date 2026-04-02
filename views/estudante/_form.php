@@ -18,8 +18,15 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'email')->textInput(['maxlength' => true]) ?>
 
-    <?= $form->field($model, 'curso_id')->textInput() ?>
+    <?php
+    use yii\helpers\ArrayHelper;
+    use app\models\Curso;
 
+    $cursos = ArrayHelper::map(Curso::find()->orderBy('nome')->all(), 'id', 'nome');
+    ?>
+
+    <?= $form->field($model, 'curso_id')->dropDownList($cursos, ['prompt' => 'Selecione o curso']) ?>
+    
     <div class="form-group">
         <?= Html::submitButton('Save', ['class' => 'btn btn-success']) ?>
     </div>
