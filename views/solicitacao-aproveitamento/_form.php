@@ -25,18 +25,20 @@ $coordenadores = ArrayHelper::map(
 
 <div class="solicitacao-aproveitamento-form">
 
-    <div class="card mb-3 p-3" style="border:1px solid #ddd; border-radius:8px;">
-        <h4>Informações da Solicitação</h4>
+    <?php if (!$model->isNewRecord): ?>
+        <div class="card mb-3 p-3" style="border:1px solid #ddd; border-radius:8px;">
+            <h4>Informações da Solicitação</h4>
 
-        <p><strong>Número de protocolo:</strong>
-            <?= $model->numero_protocolo ? Html::encode($model->numero_protocolo) : '<em>Será gerado automaticamente</em>' ?>
-        </p>
+            <?php if (!empty($model->numero_protocolo)): ?>
+                <p><strong>Número de protocolo:</strong>
+                    <?= Html::encode($model->numero_protocolo) ?>
+                </p>
+            <?php endif; ?>
 
-        <p><strong>Status:</strong>
-            <?= $model->status ? $model->statusFormatado : 'Em edição' ?>
-        </p>
+            <p><strong>Status:</strong>
+                <?= Html::encode($model->statusFormatado) ?>
+            </p>
 
-        <?php if (!$model->isNewRecord): ?>
             <p><strong>Aluno:</strong>
                 <?= $model->estudante ? Html::encode($model->estudante->nome) : '-' ?>
             </p>
@@ -44,14 +46,15 @@ $coordenadores = ArrayHelper::map(
             <p><strong>Coordenador:</strong>
                 <?= $model->coordenador ? Html::encode($model->coordenador->nome) : '-' ?>
             </p>
-        <?php endif; ?>
-    </div>
+        </div>
+    <?php endif; ?>
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'estudante_id')->dropDownList($estudantes, ['prompt' => 'Selecione o estudante']) ?>
-
-    <?= $form->field($model, 'coordenador_id')->dropDownList($coordenadores, ['prompt' => 'Selecione o coordenador']) ?>
+    <?php if ($model->isNewRecord): ?>
+        <?= $form->field($model, 'estudante_id')->dropDownList($estudantes, ['prompt' => 'Selecione o estudante']) ?>
+        <?= $form->field($model, 'coordenador_id')->dropDownList($coordenadores, ['prompt' => 'Selecione o coordenador']) ?>
+    <?php endif; ?>
 
     <div class="form-group">
         <?= Html::submitButton('Salvar Solicitação', ['class' => 'btn btn-success']) ?>

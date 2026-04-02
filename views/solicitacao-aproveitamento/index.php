@@ -52,10 +52,20 @@ $this->params['breadcrumbs'][] = $this->title;
             //'data_envio',
             //'data_finalizacao',
             [
-                'class' => ActionColumn::className(),
-                'urlCreator' => function ($action, SolicitacaoAproveitamento $model, $key, $index, $column) {
-                    return Url::toRoute([$action, 'id' => $model->id]);
-                 }
+                'class' => 'yii\grid\ActionColumn',
+                'template' => '{view} {update} {delete}',
+                'buttons' => [
+                    'update' => function ($url, $model, $key) {
+                        if ($model->podeEditar()) {
+                            return Html::a(
+                                '<span class="glyphicon glyphicon-pencil"></span>',
+                                $url,
+                                ['title' => 'Editar']
+                            );
+                        }
+                        return '';
+                    },
+                ],
             ],
         ],
     ]); ?>

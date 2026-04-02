@@ -21,7 +21,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <p>
         <?php if ($model->podeEditar()): ?>
-            <?= Html::a('Editar Solicitação', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
+            <?= Html::a('Editar', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
         <?php endif; ?>
 
         <?= Html::a('Excluir', ['delete', 'id' => $model->id], [
