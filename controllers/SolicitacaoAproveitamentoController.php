@@ -1,7 +1,8 @@
 <?php
 
 namespace app\controllers;
-
+use app\models\ItemEquivalencia;
+use Yii;
 use app\models\SolicitacaoAproveitamento;
 use app\models\SolicitacaoAproveitamentoSearch;
 use yii\web\Controller;
@@ -25,6 +26,8 @@ class SolicitacaoAproveitamentoController extends Controller
                     'class' => VerbFilter::className(),
                     'actions' => [
                         'delete' => ['POST'],
+                        'enviar' => ['POST'],
+                        'finalizar' => ['POST'],
                     ],
                 ],
             ]
@@ -69,13 +72,12 @@ class SolicitacaoAproveitamentoController extends Controller
     {
         $model = new SolicitacaoAproveitamento();
 
-        if ($this->request->isPost) {
-            if ($model->load($this->request->post()) && $model->save()) {
-                return $this->redirect(['view', 'id' => $model->id]);
-            }
-        } else {
-            $model->loadDefaultValues();
+        if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
+            Yii::$app->session->setFlash('success', 'Solicitação criada com sucesso.');
+            return $this->redirect(['update', 'id' => $model->id]);
         }
+
+        $model->loadDefaultValues();
 
         return $this->render('create', [
             'model' => $model,
@@ -93,8 +95,14 @@ class SolicitacaoAproveitamentoController extends Controller
     {
         $model = $this->findModel($id);
 
-        if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
+        if (!$model->podeEditar()) {
+            Yii::$app->session->setFlash('error', 'Esta solicitação não pode mais ser editada.');
             return $this->redirect(['view', 'id' => $model->id]);
+        }
+
+        if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
+            Yii::$app->session->setFlash('success', 'Solicitação atualizada com sucesso.');
+            return $this->redirect(['update', 'id' => $model->id]);
         }
 
         return $this->render('update', [
@@ -131,4 +139,70 @@ class SolicitacaoAproveitamentoController extends Controller
 
         throw new NotFoundHttpException('The requested page does not exist.');
     }
+
+    public function actionEnviar($id)
+    {
+        $model = $this->findModel($id);
+
+        if (!$model->podeEditar()) {
+            Yii::$app->session->setFlash('error', 'Esta solicitação não pode mais ser enviada.');
+            return $this->redirect(['view', 'id' => $id]);
+        }
+
+        if (count($model->itemEquivalencias) === 0) {
+            Yii::$app->session->setFlash('error', 'A solicitação precisa ter pelo menos um item antes do envio.');
+            return $this->redirect(['update', 'id' => $id]);
+        }
+
+        $model->status = 'EM_ANALISE';
+        $model->data_envio = date('Y-m-d H:i:s');
+
+        if ($model->save(false)) {
+            Yii::$app->session->setFlash('success', 'Solicitação enviada para análise.');
+        }
+
+        return $this->redirect(['view', 'id' => $id]);
+    }
+
+    public function actionFinalizar($id)
+    {
+        $model = $this->findModel($id);
+
+        if (!$model->podeFinalizar()) {
+            Yii::$app->session->setFlash('error', 'Não é possível finalizar: todos os itens devem ter parecer.');
+            return $this->redirect(['view', 'id' => $id]);
+        }
+
+        $itens = $model->itemEquivalencias;
+
+        $todosDeferidos = true;
+        $algumDeferido = false;
+
+        foreach ($itens as $item) {
+            if ($item->parecer !== 'DEFERIDO') {
+                $todosDeferidos = false;
+            }
+            if ($item->parecer === 'DEFERIDO') {
+                $algumDeferido = true;
+            }
+        }
+
+        if ($todosDeferidos) {
+            $model->resultado_final = 'DEFERIDA';
+        } elseif ($algumDeferido) {
+            $model->resultado_final = 'PARCIAL';
+        } else {
+            $model->resultado_final = 'INDEFERIDA';
+        }
+
+        $model->status = 'FINALIZADA';
+        $model->data_finalizacao = date('Y-m-d H:i:s');
+
+        if ($model->save(false)) {
+            Yii::$app->session->setFlash('success', 'Solicitação finalizada com sucesso.');
+        }
+
+        return $this->redirect(['view', 'id' => $id]);
+    }
+
 }
