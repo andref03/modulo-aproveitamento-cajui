@@ -98,7 +98,8 @@ class ItemEquivalenciaController extends Controller
         $model = $this->findModel($id);
 
         if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+            Yii::$app->session->setFlash('success', 'Item atualizado com sucesso.');
+            return $this->redirect(['solicitacao-aproveitamento/update', 'id' => $model->solicitacao_id]);
         }
 
         return $this->render('update', [
@@ -115,9 +116,14 @@ class ItemEquivalenciaController extends Controller
      */
     public function actionDelete($id)
     {
-        $this->findModel($id)->delete();
+        $model = $this->findModel($id);
+        $solicitacaoId = $model->solicitacao_id;
 
-        return $this->redirect(['index']);
+        $model->delete();
+
+        Yii::$app->session->setFlash('success', 'Item removido com sucesso.');
+
+        return $this->redirect(['solicitacao-aproveitamento/update', 'id' => $solicitacaoId]);
     }
 
     /**
