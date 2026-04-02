@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use Yii;
 use app\models\ItemEquivalencia;
 use app\models\ItemEquivalenciaSearch;
 use yii\web\Controller;
@@ -65,17 +66,20 @@ class ItemEquivalenciaController extends Controller
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return string|\yii\web\Response
      */
-    public function actionCreate()
+    public function actionCreate($solicitacao_id = null)
     {
         $model = new ItemEquivalencia();
 
-        if ($this->request->isPost) {
-            if ($model->load($this->request->post()) && $model->save()) {
-                return $this->redirect(['view', 'id' => $model->id]);
-            }
-        } else {
-            $model->loadDefaultValues();
+        if ($solicitacao_id !== null) {
+            $model->solicitacao_id = $solicitacao_id;
         }
+
+        if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
+            Yii::$app->session->setFlash('success', 'Item adicionado com sucesso.');
+            return $this->redirect(['solicitacao-aproveitamento/update', 'id' => $model->solicitacao_id]);
+        }
+
+        $model->loadDefaultValues();
 
         return $this->render('create', [
             'model' => $model,
