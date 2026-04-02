@@ -42,11 +42,17 @@ class SolicitacaoAproveitamento extends \yii\db\ActiveRecord
         return [
             [['numero_protocolo', 'resultado_final', 'data_envio', 'data_finalizacao'], 'default', 'value' => null],
             [['status'], 'default', 'value' => 'EM_EDICAO'],
+
             [['estudante_id'], 'required'],
+
             [['estudante_id', 'coordenador_id'], 'integer'],
             [['data_criacao', 'data_envio', 'data_finalizacao'], 'safe'],
+
             [['numero_protocolo'], 'string', 'max' => 30],
             [['status', 'resultado_final'], 'string', 'max' => 20],
+
+            [['status'], 'in', 'range' => ['EM_EDICAO', 'EM_ANALISE', 'FINALIZADA', 'CANCELADA']],
+            [['resultado_final'], 'in', 'range' => ['DEFERIDO_TOTAL', 'DEFERIDO_PARCIAL', 'INDEFERIDO_TOTAL'], 'skipOnEmpty' => true],
         ];
     }
 
@@ -57,14 +63,14 @@ class SolicitacaoAproveitamento extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'numero_protocolo' => 'Numero Protocolo',
-            'estudante_id' => 'Estudante ID',
-            'coordenador_id' => 'Coordenador ID',
-            'status' => 'Status',
+            'numero_protocolo' => 'Número do Protocolo',
+            'estudante_id' => 'Estudante',
+            'coordenador_id' => 'Coordenador',
+            'status' => 'Status da Solicitação',
             'resultado_final' => 'Resultado Final',
-            'data_criacao' => 'Data Criacao',
-            'data_envio' => 'Data Envio',
-            'data_finalizacao' => 'Data Finalizacao',
+            'data_criacao' => 'Data de Criação',
+            'data_envio' => 'Data de Envio',
+            'data_finalizacao' => 'Data de Finalização',
         ];
     }
 
@@ -159,6 +165,27 @@ class SolicitacaoAproveitamento extends \yii\db\ActiveRecord
         }
 
         return count($this->itemEquivalencias) > 0;
+    }
+
+    public function getResultadoFinalFormatado()
+    {
+        return match ($this->resultado_final) {
+            'DEFERIDO_TOTAL' => 'Deferido Total',
+            'DEFERIDO_PARCIAL' => 'Deferido Parcial',
+            'INDEFERIDO_TOTAL' => 'Indeferido Total',
+            default => '-',
+        };
+    }
+
+    public function getStatusFormatado()
+    {
+        return match ($this->status) {
+            'EM_EDICAO' => 'Em edição',
+            'EM_ANALISE' => 'Em análise',
+            'FINALIZADA' => 'Finalizada',
+            'CANCELADA' => 'Cancelada',
+            default => $this->status,
+        };
     }
 
 }
