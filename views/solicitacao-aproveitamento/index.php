@@ -34,7 +34,19 @@ $this->params['breadcrumbs'][] = $this->title;
             'numero_protocolo',
             'estudante_id',
             'coordenador_id',
-            'status',
+            [
+                'attribute' => 'status',
+                'value' => function ($model) {
+                    return $model->statusFormatado;
+                },
+            ],
+            [
+                'attribute' => 'resultado_final',
+                'label' => 'Resultado Final',
+                'value' => function ($model) {
+                    return $model->resultadoFinalFormatado;
+                },
+            ],
             //'resultado_final',
             //'data_criacao',
             //'data_envio',
