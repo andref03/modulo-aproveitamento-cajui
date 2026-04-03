@@ -51,7 +51,7 @@ class SiteController extends Controller
 
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
             Yii::$app->session->setFlash('success', 'Login realizado com sucesso!');
-            return $this->goHome();
+            return $this->goBack();
         }
 
         $model->senha = '';

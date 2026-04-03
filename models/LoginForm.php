@@ -16,8 +16,12 @@ class LoginForm extends Model
     public function rules()
     {
         return [
-            [['email', 'senha'], 'required'],
-            ['email', 'email'],
+            [['email', 'senha'], 'required', 'message' => '{attribute} é obrigatório.'],
+            ['email', 'trim'],
+            ['email', 'filter', 'filter' => function ($value) {
+                return mb_strtolower((string)$value);
+            }],
+            ['email', 'email', 'message' => 'Informe um e-mail válido.'],
             ['rememberMe', 'boolean'],
             ['senha', 'validatePassword'],
         ];
@@ -28,7 +32,7 @@ class LoginForm extends Model
         return [
             'email' => 'E-mail',
             'senha' => 'Senha',
-            'rememberMe' => 'Lembrar-me',
+            'rememberMe' => 'Lembrar acesso neste dispositivo',
         ];
     }
 

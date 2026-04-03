@@ -16,13 +16,21 @@ $this->title = 'Login';
 
         <?php $form = ActiveForm::begin(); ?>
 
+            <?= $form->errorSummary($model, [
+                'class' => 'alert alert-danger',
+                'header' => false,
+            ]) ?>
+
             <?= $form->field($model, 'email')->textInput([
                 'autofocus' => true,
-                'placeholder' => 'Digite seu e-mail'
+                'placeholder' => 'Digite seu e-mail',
+                'autocomplete' => 'email',
+                'inputmode' => 'email'
             ]) ?>
 
             <?= $form->field($model, 'senha')->passwordInput([
-                'placeholder' => 'Digite sua senha'
+                'placeholder' => 'Digite sua senha',
+                'autocomplete' => 'current-password'
             ]) ?>
 
             <?= $form->field($model, 'rememberMe')->checkbox() ?>
