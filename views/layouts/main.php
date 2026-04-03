@@ -4,122 +4,215 @@
 /** @var string $content */
 
 use app\assets\AppAsset;
-use app\widgets\Alert;
 use yii\bootstrap5\Breadcrumbs;
 use yii\bootstrap5\Html;
-use yii\bootstrap5\Nav;
-use yii\bootstrap5\NavBar;
+use yii\bootstrap5\Alert;
 
 AppAsset::register($this);
 
-// Registra CSS customizado para mensagens de erro em vermelho
-$this->registerCss('
-    .help-block {
-        color: #dc3545;
-        font-weight: 500;
-        display: block;
-        margin-top: 0.25rem;
-    }
-    .field-itemequivalencia.has-error input,
-    .field-itemequivalencia.has-error select,
-    .field-itemequivalencia.has-error textarea,
-    .field-solicitacaoaproveitamento.has-error input,
-    .field-solicitacaoaproveitamento.has-error select,
-    .field-solicitacaoaproveitamento.has-error textarea {
-        border: 1px solid #dc3545 !important;
-        background-color: #fff8f8 !important;
-    }
-');
+$this->registerCss("
+body {
+    background-color: #f5f7fb;
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
 
-$this->registerCsrfMetaTags();
-$this->registerMetaTag(['charset' => Yii::$app->charset], 'charset');
-$this->registerMetaTag(['name' => 'viewport', 'content' => 'width=device-width, initial-scale=1, shrink-to-fit=no']);
-$this->registerMetaTag(['name' => 'description', 'content' => $this->params['meta_description'] ?? '']);
-$this->registerMetaTag(['name' => 'keywords', 'content' => $this->params['meta_keywords'] ?? '']);
-$this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii::getAlias('@web/favicon.ico')]);
+.layout-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 260px;
+    background: #1f2937;
+    color: #fff;
+    transition: all 0.3s ease;
+    padding-top: 20px;
+    position: relative;
+}
+
+.sidebar.collapsed {
+    width: 80px;
+}
+
+.sidebar .brand {
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 25px;
+    padding: 0 10px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.sidebar.collapsed .brand-text,
+.sidebar.collapsed .menu-text {
+    display: none;
+}
+
+.sidebar a {
+    color: #fff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    transition: background 0.2s ease;
+}
+
+.sidebar a:hover {
+    background: #374151;
+}
+
+.sidebar .menu-icon {
+    width: 24px;
+    text-align: center;
+    margin-right: 12px;
+    font-size: 16px;
+}
+
+.sidebar.collapsed .menu-icon {
+    margin-right: 0;
+}
+
+.toggle-btn {
+    position: absolute;
+    top: 15px;
+    right: -15px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 2px 6px rgba(0,0,0,.2);
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.topbar {
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 16px 24px;
+    font-size: 22px;
+    font-weight: bold;
+    color: #111827;
+}
+
+.page-content {
+    padding: 24px;
+}
+
+.card-page {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+");
+
+$this->registerJs("
+document.addEventListener('DOMContentLoaded', function () {
+    const toggleBtn = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('sidebar');
+
+    if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', function () {
+            sidebar.classList.toggle('collapsed');
+        });
+    }
+});
+");
 ?>
+
 <?php $this->beginPage() ?>
 <!DOCTYPE html>
 <html lang="<?= Yii::$app->language ?>" class="h-100">
 <head>
-    <title><?= Html::encode($this->title) ?></title>
+    <meta charset="<?= Yii::$app->charset ?>">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><?= Html::encode($this->title ?: 'Módulo de Aproveitamento - Cajui') ?></title>
     <?php $this->head() ?>
 </head>
-<body class="d-flex flex-column h-100">
+<body>
 <?php $this->beginBody() ?>
 
-<header id="header">
-    <?php
-    NavBar::begin([
-        'brandLabel' => Yii::$app->name,
-        'brandUrl' => Yii::$app->homeUrl,
-        'options' => ['class' => 'navbar-expand-md navbar-dark bg-dark fixed-top']
-    ]);
-    echo Nav::widget([
-        'options' => ['class' => 'navbar-nav'],
-        'items' => [
-            [
-                'label' => 'Home',
-                'url' => ['/site/index']
-            ],
-            [
-                'label' => 'Solicitações',
-                'url' => ['/solicitacao-aproveitamento/index']
-            ],
-            [
-                'label' => 'Itens',
-                'url' => ['/item-equivalencia/index']
-            ],
-            [
-                'label' => 'Estudantes',
-                'url' => ['/estudante/index']
-            ],
-            [
-                'label' => 'Coordenadores',
-                'url' => ['/coordenador/index']
-            ],
-            [
-                'label' => 'Cursos',
-                'url' => ['/curso/index']
-            ],
-            [
-                'label' => 'Disciplinas',
-                'url' => ['/disciplina-ifnmg/index']
-            ],
-            Yii::$app->user->isGuest
-                ? ['label' => 'Login', 'url' => ['/site/login']]
-                : '<li class="nav-item">'
-                    . Html::beginForm(['/site/logout'])
-                    . Html::submitButton(
-                        'Logout (' . Yii::$app->user->identity->username . ')',
-                        ['class' => 'nav-link btn btn-link logout']
-                    )
-                    . Html::endForm()
-                    . '</li>'
-        ]
-    ]);
-    NavBar::end();
-    ?>
-</header>
+<div class="layout-wrapper">
 
-<main id="main" class="flex-shrink-0" role="main">
-    <div class="container">
-        <?php if (!empty($this->params['breadcrumbs'])): ?>
-            <?= Breadcrumbs::widget(['links' => $this->params['breadcrumbs']]) ?>
-        <?php endif ?>
-        <?= Alert::widget() ?>
-        <?= $content ?>
-    </div>
-</main>
+    <aside class="sidebar" id="sidebar">
+        <button class="toggle-btn" id="sidebarToggle">☰</button>
 
-<footer id="footer" class="mt-auto py-3 bg-light">
-    <div class="container">
-        <div class="row text-muted">
-            <div class="col-md-6 text-center text-md-start">&copy; My Company <?= date('Y') ?></div>
-            <div class="col-md-6 text-center text-md-end"><?= Yii::powered() ?></div>
+        <div class="brand">
+            <span class="brand-text">Cajui</span>
         </div>
-    </div>
-</footer>
+
+        <a href="<?= \yii\helpers\Url::to(['/site/index']) ?>">
+            <span class="menu-icon">🏠</span>
+            <span class="menu-text">Início</span>
+        </a>
+
+        <a href="<?= \yii\helpers\Url::to(['/solicitacao-aproveitamento/index']) ?>">
+            <span class="menu-icon">📄</span>
+            <span class="menu-text">Solicitações</span>
+        </a>
+
+        <a href="<?= \yii\helpers\Url::to(['/item-equivalencia/index']) ?>">
+            <span class="menu-icon">📚</span>
+            <span class="menu-text">Itens de Equivalência</span>
+        </a>
+
+        <a href="<?= \yii\helpers\Url::to(['/estudante/index']) ?>">
+            <span class="menu-icon">🎓</span>
+            <span class="menu-text">Estudantes</span>
+        </a>
+
+        <a href="<?= \yii\helpers\Url::to(['/coordenador/index']) ?>">
+            <span class="menu-icon">👨‍🏫</span>
+            <span class="menu-text">Coordenadores</span>
+        </a>
+
+        <a href="<?= \yii\helpers\Url::to(['/curso/index']) ?>">
+            <span class="menu-icon">🏫</span>
+            <span class="menu-text">Cursos</span>
+        </a>
+
+        <a href="<?= \yii\helpers\Url::to(['/disciplina-ifnmg/index']) ?>">
+            <span class="menu-icon">📘</span>
+            <span class="menu-text">Disciplinas IFNMG</span>
+        </a>
+
+        <a href="<?= \yii\helpers\Url::to(['/log-acao/index']) ?>">
+            <span class="menu-icon">🕒</span>
+            <span class="menu-text">Logs</span>
+        </a>
+    </aside>
+
+    <main class="main-content">
+        <div class="topbar">
+            Módulo de Aproveitamento de Estudos
+        </div>
+
+        <div class="page-content">
+            <div class="card-page">
+
+                <?php if (!empty($this->params['breadcrumbs'])): ?>
+                    <?= Breadcrumbs::widget([
+                        'links' => $this->params['breadcrumbs'],
+                    ]) ?>
+                <?php endif ?>
+
+                <?= Alert::widget() ?>
+
+                <?= $content ?>
+            </div>
+        </div>
+    </main>
+</div>
 
 <?php $this->endBody() ?>
 </body>
