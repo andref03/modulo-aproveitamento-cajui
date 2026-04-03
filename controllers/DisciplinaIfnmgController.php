@@ -2,6 +2,8 @@
 
 namespace app\controllers;
 
+use yii\filters\AccessControl;
+use app\components\AuthHelper;
 use app\models\DisciplinaIfnmg;
 use app\models\DisciplinaIfnmgSearch;
 use yii\web\Controller;
@@ -18,17 +20,32 @@ class DisciplinaIfnmgController extends Controller
      */
     public function behaviors()
     {
-        return array_merge(
-            parent::behaviors(),
-            [
-                'verbs' => [
-                    'class' => VerbFilter::className(),
-                    'actions' => [
-                        'delete' => ['POST'],
+        return [
+            'access' => [
+                'class' => AccessControl::class,
+                'rules' => [
+                    [
+                        'allow' => true,
+                        'actions' => ['index', 'view'],
+                        'roles' => ['@'],
+                    ],
+                    [
+                        'allow' => true,
+                        'actions' => ['create', 'update', 'delete'],
+                        'roles' => ['@'],
+                        'matchCallback' => function () {
+                            return AuthHelper::isAdmin();
+                        }
                     ],
                 ],
-            ]
-        );
+            ],
+            'verbs' => [
+                'class' => VerbFilter::className(),
+                'actions' => [
+                    'delete' => ['POST'],
+                ],
+            ],
+        ];
     }
 
     /**

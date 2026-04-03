@@ -495,19 +495,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     <span class="menu-text">Solicitações</span>
                 </a>
 
-                
-                <a href="<?= Url::to(['/disciplina-ifnmg/index']) ?>" class="menu-link <?= isActive(['disciplina-ifnmg/index']) ?>">
-                    <span class="menu-icon">📚</span>
-                    <span class="menu-text">Disciplinas IFNMG</span>
-                </a>
-                
-
                 <?php if ($usuario && $usuario->isAdmin()): ?>
                     <div class="menu-section-title">Administração</div>
 
                     <a href="<?= Url::to(['/usuario/index']) ?>" class="menu-link <?= isActive(['usuario/index']) ?>">
                         <span class="menu-icon">👤</span>
                         <span class="menu-text">Usuários</span>
+                    </a>
+
+                    <a href="<?= Url::to(['/disciplina-ifnmg/index']) ?>" class="menu-link <?= isActive(['disciplina-ifnmg/index']) ?>">
+                        <span class="menu-icon">📚</span>
+                        <span class="menu-text">Disciplinas IFNMG</span>
                     </a>
 
                     <a href="<?= Url::to(['/curso/index']) ?>" class="menu-link <?= isActive(['curso/index']) ?>">
