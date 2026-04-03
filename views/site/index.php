@@ -1,64 +1,46 @@
 <?php
 
-use yii\helpers\Html;
-
-$this->title = 'Painel Inicial';
+$this->title = 'Início';
 ?>
 
 <div class="site-index">
-    <h1 class="mb-4">Painel Inicial</h1>
+    <div class="p-4 rounded" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white;">
+        <h1 class="mb-3">Olá! Seja bem-vindo ao sistema Cajuí.</h1>
+    </div>
 
-    <p class="text-muted mb-4">
-        Sistema para gestão de solicitações de aproveitamento de estudos.
-    </p>
-
-    <div class="row g-3">
+    <div class="row mt-4 g-3">
         <div class="col-md-4">
-            <div class="card p-3 h-100">
+            <div class="card p-3 h-100 shadow-sm">
                 <h4>Solicitações</h4>
-                <p>Gerencie solicitações de aproveitamento.</p>
-                <?= Html::a('Acessar', ['/solicitacao-aproveitamento/index'], ['class' => 'btn btn-primary']) ?>
+                <p class="text-muted mb-0">
+                    Acompanhe as solicitações cadastradas no sistema.
+                </p>
             </div>
         </div>
 
         <div class="col-md-4">
-            <div class="card p-3 h-100">
-                <h4>Estudantes</h4>
-                <p>Cadastre e consulte estudantes.</p>
-                <?= Html::a('Acessar', ['/estudante/index'], ['class' => 'btn btn-primary']) ?>
+            <div class="card p-3 h-100 shadow-sm">
+                <h4>Análise</h4>
+                <p class="text-muted mb-0">
+                    Visualize os itens e acompanhe o processo de decisão por disciplina.
+                </p>
             </div>
         </div>
 
         <div class="col-md-4">
-            <div class="card p-3 h-100">
-                <h4>Coordenadores</h4>
-                <p>Cadastre coordenadores por curso.</p>
-                <?= Html::a('Acessar', ['/coordenador/index'], ['class' => 'btn btn-primary']) ?>
+            <div class="card p-3 h-100 shadow-sm">
+                <h4>Organização Acadêmica</h4>
+                <p class="text-muted mb-0">
+                    Consulte cursos, estudantes, coordenadores e disciplinas cadastradas.
+                </p>
             </div>
         </div>
+    </div>
 
-        <div class="col-md-4 mt-3">
-            <div class="card p-3 h-100">
-                <h4>Cursos</h4>
-                <p>Gerencie cursos cadastrados.</p>
-                <?= Html::a('Acessar', ['/curso/index'], ['class' => 'btn btn-primary']) ?>
-            </div>
-        </div>
-
-        <div class="col-md-4 mt-3">
-            <div class="card p-3 h-100">
-                <h4>Disciplinas IFNMG</h4>
-                <p>Gerencie a matriz de disciplinas.</p>
-                <?= Html::a('Acessar', ['/disciplina-ifnmg/index'], ['class' => 'btn btn-primary']) ?>
-            </div>
-        </div>
-
-        <div class="col-md-4 mt-3">
-            <div class="card p-3 h-100">
-                <h4>Itens de Equivalência</h4>
-                <p>Visualize os itens cadastrados.</p>
-                <?= Html::a('Acessar', ['/item-equivalencia/index'], ['class' => 'btn btn-primary']) ?>
-            </div>
-        </div>
+    <div class="mt-4 p-4 bg-light rounded border">
+        <h5 class="mb-2">Resumo do sistema</h5>
+        <p class="mb-0 text-muted">
+            Utilize o menu lateral para navegar entre as funcionalidades do módulo de aproveitamento.
+        </p>
     </div>
 </div>
