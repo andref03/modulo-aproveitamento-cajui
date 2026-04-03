@@ -62,6 +62,16 @@ $this->params['breadcrumbs'][] = $this->title;
                 }
             ],
             [
+                'label' => 'Resultado Final',
+                'value' => function ($model) {
+                    if ($model->resultado_final) {
+                        return $model->resultadoFinalFormatado;
+                    }
+                    return '-';
+                },
+                'format' => 'raw',
+            ],
+            [
                 'label' => 'Itens',
                 'value' => function ($model) {
                     return count($model->itemEquivalencias);
@@ -70,14 +80,19 @@ $this->params['breadcrumbs'][] = $this->title;
 
             [
                 'class' => 'yii\grid\ActionColumn',
-                'template' => '{view} {update} {delete}',
+                'header' => 'Ações',
+                'template' => '{edit} {view} {delete}',
                 'buttons' => [
-                    'update' => function ($url, $model, $key) {
+                    'edit' => function ($url, $model, $key) {
                         if ($model->podeEditar()) {
                             return \yii\helpers\Html::a(
                                 '<span class="glyphicon glyphicon-pencil"></span>',
-                                $url,
-                                ['title' => 'Editar']
+                                ['update', 'id' => $model->id],
+                                [
+                                    'title' => 'Editar',
+                                    'class' => 'btn btn-xs btn-primary',
+                                    'style' => 'margin-right: 5px;'
+                                ]
                             );
                         }
                         return '';
