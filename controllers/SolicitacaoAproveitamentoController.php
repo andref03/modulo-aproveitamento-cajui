@@ -119,8 +119,8 @@ class SolicitacaoAproveitamentoController extends Controller
                 if ($model->save()) {
                     $model->registrarAcao('Solicitação criada com protocolo ' . $model->numero_protocolo);
                     $transaction->commit();
-                    Yii::$app->session->setFlash('success', 'Solicitação criada com sucesso.');
-                    return $this->redirect(['update', 'id' => $model->id]);
+                    Yii::$app->session->setFlash('success', 'Solicitação criada com sucesso. Agora adicione os itens de equivalência.');
+                    return $this->redirect(['item-equivalencia/create', 'solicitacao_id' => $model->id]);
                 } else {
                     $transaction->rollBack();
                     Yii::$app->session->setFlash('error', 'Erro ao criar solicitação.');
@@ -165,6 +165,11 @@ class SolicitacaoAproveitamentoController extends Controller
 
             if ($model->save()) {
                 Yii::$app->session->setFlash('success', 'Solicitação atualizada com sucesso.');
+
+                if ($model->podeEditar()) {
+                    return $this->redirect(['update', 'id' => $model->id]);
+                }
+
                 return $this->redirect(['view', 'id' => $model->id]);
             }
         }
