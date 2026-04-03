@@ -96,10 +96,39 @@ class ItemEquivalenciaController extends Controller
 
             $this->verificarPermissaoSolicitacaoDoItem($solicitacao, 'create');
 
-            if ($model->save()) {
-                Yii::$app->session->setFlash('success', 'Item adicionado com sucesso.');
-                return $this->redirect(['solicitacao-aproveitamento/update', 'id' => $model->solicitacao_id]);
+            if (!$solicitacao->podeEditar()) {
+                Yii::$app->session->setFlash('error', 'Não é possível adicionar itens a esta solicitação.');
+                return $this->redirect(['solicitacao-aproveitamento/view', 'id' => $solicitacao->id]);
             }
+
+            // Aluno só cadastra o item acadêmico; análise inicia sempre pendente.
+            if ($usuario->isAluno()) {
+                $model->parecer = 'PENDENTE';
+                $model->justificativa = null;
+                $model->data_analise = null;
+            }
+
+            try {
+                if ($model->save()) {
+                    Yii::$app->session->setFlash('success', 'Item adicionado com sucesso.');
+                    return $this->redirect(['solicitacao-aproveitamento/update', 'id' => $model->solicitacao_id]);
+                }
+            } catch (\yii\db\IntegrityException $e) {
+                // Em bases restauradas por dump, a sequence pode ficar defasada.
+                // Tentamos sincronizar e salvar novamente automaticamente.
+                if (str_contains($e->getMessage(), 'item_equivalencia_pkey')) {
+                    $this->sincronizarSequenciaItemEquivalencia();
+
+                    if ($model->save()) {
+                        Yii::$app->session->setFlash('success', 'Item adicionado com sucesso.');
+                        return $this->redirect(['solicitacao-aproveitamento/update', 'id' => $model->solicitacao_id]);
+                    }
+                }
+
+                Yii::error($e->getMessage(), __METHOD__);
+            }
+
+            Yii::$app->session->setFlash('error', 'Não foi possível salvar o item. Verifique os dados informados.');
         }
 
         $model->loadDefaultValues();
@@ -251,5 +280,20 @@ class ItemEquivalenciaController extends Controller
         }
 
         throw new ForbiddenHttpException('Acesso negado.');
+    }
+
+    protected function sincronizarSequenciaItemEquivalencia()
+    {
+        if (Yii::$app->db->driverName !== 'pgsql') {
+            return;
+        }
+
+        Yii::$app->db->createCommand("
+            SELECT setval(
+                pg_get_serial_sequence('item_equivalencia', 'id'),
+                COALESCE((SELECT MAX(id) FROM item_equivalencia), 0) + 1,
+                false
+            )
+        ")->execute();
     }
 }

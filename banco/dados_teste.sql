@@ -178,3 +178,16 @@ INSERT INTO usuario (id, nome, email, senha_hash, perfil, estudante_id, coordena
 (14, 'Fernanda Rocha', 'fernanda.rocha@ifnmg.edu.br', 'coord123', 'COORDENADOR', NULL, 3, TRUE),
 (15, 'Ricardo Almeida', 'ricardo.almeida@ifnmg.edu.br', 'coord123', 'COORDENADOR', NULL, 4, TRUE),
 (16, 'Patrícia Oliveira', 'patricia.oliveira@ifnmg.edu.br', 'coord123', 'COORDENADOR', NULL, 5, TRUE);
+
+-- =========================================================
+-- AJUSTE DE SEQUÊNCIAS (PostgreSQL)
+-- Evita erro de chave duplicada após carga com IDs explícitos
+-- =========================================================
+SELECT setval(pg_get_serial_sequence('curso', 'id'), COALESCE((SELECT MAX(id) FROM curso), 0) + 1, false);
+SELECT setval(pg_get_serial_sequence('coordenador', 'id'), COALESCE((SELECT MAX(id) FROM coordenador), 0) + 1, false);
+SELECT setval(pg_get_serial_sequence('estudante', 'id'), COALESCE((SELECT MAX(id) FROM estudante), 0) + 1, false);
+SELECT setval(pg_get_serial_sequence('disciplina_ifnmg', 'id'), COALESCE((SELECT MAX(id) FROM disciplina_ifnmg), 0) + 1, false);
+SELECT setval(pg_get_serial_sequence('solicitacao_aproveitamento', 'id'), COALESCE((SELECT MAX(id) FROM solicitacao_aproveitamento), 0) + 1, false);
+SELECT setval(pg_get_serial_sequence('item_equivalencia', 'id'), COALESCE((SELECT MAX(id) FROM item_equivalencia), 0) + 1, false);
+SELECT setval(pg_get_serial_sequence('log_acao', 'id'), COALESCE((SELECT MAX(id) FROM log_acao), 0) + 1, false);
+SELECT setval(pg_get_serial_sequence('usuario', 'id'), COALESCE((SELECT MAX(id) FROM usuario), 0) + 1, false);

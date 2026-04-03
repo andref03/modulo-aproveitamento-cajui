@@ -134,17 +134,22 @@ if ($usuario->isAdmin()) {
     <div class="card mb-4 p-3" style="border:1px solid #ddd; border-radius:8px;">
         <h4>Análise do coordenador</h4>
 
-        <?= $form->field($model, 'parecer')->dropDownList([
-            'PENDENTE' => 'Pendente',
-            'DEFERIDO' => 'Deferido',
-            'INDEFERIDO' => 'Indeferido',
-        ], [
-            'prompt' => 'Selecione o parecer',
-            'disabled' => !$podeEditarAnalise
-        ]) ?>
+        <?php if ($model->isNewRecord && !$podeEditarAnalise): ?>
+            <p><strong>Parecer:</strong> Pendente</p>
+            <?= Html::activeHiddenInput($model, 'parecer', ['value' => 'PENDENTE']) ?>
+        <?php else: ?>
+            <?= $form->field($model, 'parecer')->dropDownList([
+                'PENDENTE' => 'Pendente',
+                'DEFERIDO' => 'Deferido',
+                'INDEFERIDO' => 'Indeferido',
+            ], [
+                'prompt' => 'Selecione o parecer',
+                'disabled' => !$podeEditarAnalise
+            ]) ?>
 
-        <?php if (!$podeEditarAnalise && !$model->isNewRecord): ?>
-            <?= Html::activeHiddenInput($model, 'parecer') ?>
+            <?php if (!$podeEditarAnalise && !$model->isNewRecord): ?>
+                <?= Html::activeHiddenInput($model, 'parecer') ?>
+            <?php endif; ?>
         <?php endif; ?>
 
         <?= $form->field($model, 'justificativa')->textarea([

@@ -37,16 +37,6 @@ $usuario = Yii::$app->user->identity;
         <?php endif; ?>
     </p>
 
-    <?php if (($usuario->isCoordenador() || $usuario->isAdmin()) && $model->podeFinalizar()): ?>
-        <p>
-            <?= Html::beginForm(['finalizar', 'id' => $model->id], 'post') ?>
-                <?= Html::submitButton('Finalizar Solicitação', [
-                    'class' => 'btn btn-success'
-                ]) ?>
-            <?= Html::endForm() ?>
-        </p>
-    <?php endif; ?>
-
     <?php if ($model->podeSerFinalizadaPeloUsuario()): ?>
         <p>
             <?= Html::beginForm(['finalizar', 'id' => $model->id], 'post') ?>
