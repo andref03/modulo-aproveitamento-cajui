@@ -19,7 +19,7 @@ $usuario = Yii::$app->user->identity;
 
     <h1><?= Html::encode($this->title) ?></h1>
 
-    <?php if ($usuario && ($usuario->isAluno() || $usuario->isAdmin())): ?>
+    <?php if ($usuario->isAluno() || $usuario->isAdmin()): ?>
         <p>
             <?= Html::a('Nova Solicitação', ['create'], ['class' => 'btn btn-success']) ?>
         </p>
@@ -82,32 +82,43 @@ $usuario = Yii::$app->user->identity;
             [
                 'class' => 'yii\grid\ActionColumn',
                 'header' => 'Ações',
-                'template' => '{view} {update} {delete}',
+                'template' => '{edit} {view} {delete}',
+                'contentOptions' => ['class' => 'text-nowrap'],
                 'buttons' => [
-                    'update' => function ($url, $model, $key) {
-                        if ($model->podeSerEditadaPeloUsuario()) {
+                    'view' => function ($url, $model, $key) {
+                        return Html::a(
+                            'Visualizar',
+                            ['view', 'id' => $model->id],
+                            [
+                                'title' => 'Visualizar',
+                                'class' => 'action-btn action-btn-view',
+                                'aria-label' => 'Visualizar solicitação',
+                            ]
+                        );
+                    },
+                    'edit' => function ($url, $model, $key) use ($usuario) {
+                        if (($usuario->isAluno() || $usuario->isAdmin()) && $model->podeEditar()) {
                             return Html::a(
                                 'Editar',
                                 ['update', 'id' => $model->id],
-                                ['class' => 'btn btn-sm btn-primary me-1']
+                                [
+                                    'title' => 'Editar',
+                                    'class' => 'action-btn action-btn-edit',
+                                    'aria-label' => 'Editar solicitação',
+                                ]
                             );
                         }
                         return '';
                     },
-                    'view' => function ($url, $model, $key) {
-                        return Html::a(
-                            'Ver',
-                            ['view', 'id' => $model->id],
-                            ['class' => 'btn btn-sm btn-outline-secondary me-1']
-                        );
-                    },
                     'delete' => function ($url, $model, $key) use ($usuario) {
-                        if ($usuario && $usuario->isAdmin()) {
+                        if (($usuario->isAluno() || $usuario->isAdmin()) && $model->podeEditar()) {
                             return Html::a(
                                 'Excluir',
                                 ['delete', 'id' => $model->id],
                                 [
-                                    'class' => 'btn btn-sm btn-danger',
+                                    'title' => 'Excluir',
+                                    'class' => 'action-btn action-btn-delete',
+                                    'aria-label' => 'Excluir solicitação',
                                     'data' => [
                                         'confirm' => 'Tem certeza que deseja excluir esta solicitação?',
                                         'method' => 'post',

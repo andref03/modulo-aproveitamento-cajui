@@ -337,6 +337,74 @@ body {
     box-shadow: 0 10px 30px rgba(15,23,42,0.06);
 }
 
+.action-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    transition: all 0.18s ease;
+}
+
+.action-btn:hover,
+.action-btn:focus {
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+.action-btn:focus-visible {
+    outline: 2px solid #1d4ed8;
+    outline-offset: 2px;
+}
+
+.action-btn-view {
+    background: #eff6ff;
+    color: #1e40af;
+    border-color: #bfdbfe;
+}
+
+.action-btn-view:hover,
+.action-btn-view:focus {
+    background: #dbeafe;
+    color: #1e3a8a;
+}
+
+.action-btn-edit {
+    background: #ecfdf5;
+    color: #065f46;
+    border-color: #a7f3d0;
+}
+
+.action-btn-edit:hover,
+.action-btn-edit:focus {
+    background: #d1fae5;
+    color: #064e3b;
+}
+
+.action-btn-delete {
+    background: #fef2f2;
+    color: #b91c1c;
+    border-color: #fecaca;
+}
+
+.action-btn-delete:hover,
+.action-btn-delete:focus {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
 /* =========================
    RESPONSIVO
 ========================= */

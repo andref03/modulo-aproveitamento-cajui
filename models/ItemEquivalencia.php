@@ -191,7 +191,27 @@ class ItemEquivalencia extends \yii\db\ActiveRecord
 
     public function podeEditarAnalise()
     {
-        return $this->solicitacao && in_array($this->solicitacao->status, ['EM_EDICAO', 'EM_ANALISE', 'FINALIZADA']);
+        return $this->solicitacao && $this->solicitacao->status === 'EM_ANALISE';
+    }
+
+    public function usuarioPodeEditarDadosAcademicos()
+    {
+        $usuario = Yii::$app->user->identity;
+
+        return $usuario &&
+            ($usuario->isAdmin() || $usuario->isAluno()) &&
+            $this->solicitacao &&
+            $this->solicitacao->status === 'EM_EDICAO';
+    }
+
+    public function usuarioPodeEditarAnalise()
+    {
+        $usuario = Yii::$app->user->identity;
+
+        return $usuario &&
+            ($usuario->isAdmin() || $usuario->isCoordenador()) &&
+            $this->solicitacao &&
+            $this->solicitacao->status === 'EM_ANALISE';
     }
 
 }

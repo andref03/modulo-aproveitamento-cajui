@@ -21,32 +21,31 @@ $usuario = Yii::$app->user->identity;
 
     <h1><?= Html::encode($this->title) ?></h1>
 
-    <p>
-        <?php if ($model->podeSerEditadaPeloUsuario()): ?>
-            <?= Html::a('Editar', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
+    <p class="action-toolbar">
+        <?php if (($usuario->isAluno() || $usuario->isAdmin()) && $model->podeEditar()): ?>
+            <?= Html::a('Editar', ['update', 'id' => $model->id], ['class' => 'action-btn action-btn-edit']) ?>
         <?php endif; ?>
 
-        <?php if ($usuario && $usuario->isAdmin()): ?>
+        <?php if ($usuario->isAdmin() || ($usuario->isAluno() && $model->podeEditar())): ?>
             <?= Html::a('Excluir', ['delete', 'id' => $model->id], [
-                'class' => 'btn btn-danger',
+                'class' => 'action-btn action-btn-delete',
                 'data' => [
                     'confirm' => 'Tem certeza que deseja excluir esta solicitação?',
                     'method' => 'post',
                 ],
             ]) ?>
         <?php endif; ?>
+    </p>
 
-        <?php if ($model->podeSerEnviadaPeloUsuario()): ?>
-            <?= Html::beginForm(['enviar', 'id' => $model->id], 'post', ['style' => 'display:inline-block; margin-left:8px;']) ?>
-                <?= Html::submitButton('Enviar para análise', [
-                    'class' => 'btn btn-warning',
-                    'data' => [
-                        'confirm' => 'Após enviar, você não poderá mais editar esta solicitação. Deseja continuar?',
-                    ],
+    <?php if (($usuario->isCoordenador() || $usuario->isAdmin()) && $model->podeFinalizar()): ?>
+        <p>
+            <?= Html::beginForm(['finalizar', 'id' => $model->id], 'post') ?>
+                <?= Html::submitButton('Finalizar Solicitação', [
+                    'class' => 'btn btn-success'
                 ]) ?>
             <?= Html::endForm() ?>
-        <?php endif; ?>
-    </p>
+        </p>
+    <?php endif; ?>
 
     <?php if ($model->podeSerFinalizadaPeloUsuario()): ?>
         <p>
@@ -135,7 +134,35 @@ $usuario = Yii::$app->user->identity;
                 [
                     'class' => 'yii\grid\ActionColumn',
                     'controller' => 'item-equivalencia',
-                    'template' => $model->podeSerEditadaPeloUsuario() ? '{view} {update}' : '{view}',
+                    'template' => '{view} {update} {delete}',
+                    'contentOptions' => ['class' => 'text-nowrap'],
+                    'buttons' => [
+                        'view' => function ($url, $item) {
+                            return Html::a('Visualizar', $url, ['class' => 'action-btn action-btn-view']);
+                        },
+                        'update' => function ($url, $item) use ($usuario, $model) {
+                            if (
+                                ($usuario->isAluno() && $model->status === 'EM_EDICAO') ||
+                                ($usuario->isCoordenador() && $model->status === 'EM_ANALISE') ||
+                                $usuario->isAdmin()
+                            ) {
+                                return Html::a('Editar', $url, ['class' => 'action-btn action-btn-edit']);
+                            }
+                            return '';
+                        },
+                        'delete' => function ($url, $item) use ($usuario, $model) {
+                            if (($usuario->isAluno() || $usuario->isAdmin()) && $model->status === 'EM_EDICAO') {
+                                return Html::a('Excluir', $url, [
+                                    'class' => 'action-btn action-btn-delete',
+                                    'data' => [
+                                        'confirm' => 'Deseja realmente excluir este item?',
+                                        'method' => 'post',
+                                    ],
+                                ]);
+                            }
+                            return '';
+                        },
+                    ],
                 ],
             ],
         ]) ?>

@@ -17,9 +17,13 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <h1><?= Html::encode($this->title) ?></h1>
 
-    <p>
-        <?= Html::a('Novo Item', ['create'], ['class' => 'btn btn-success']) ?>
-    </p>
+    <?php $usuario = Yii::$app->user->identity; ?>
+
+    <?php if ($usuario->isAluno() || $usuario->isAdmin()): ?>
+        <p>
+            <?= Html::a('Novo Item', ['create', 'solicitacao_id' => Yii::$app->request->get('id')], ['class' => 'btn btn-success']) ?>
+        </p>
+    <?php endif; ?>
 
     <?php Pjax::begin(); ?>
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>

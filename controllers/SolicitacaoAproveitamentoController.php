@@ -34,42 +34,19 @@ class SolicitacaoAproveitamentoController extends Controller
     public function actionIndex()
     {
         $searchModel = new SolicitacaoAproveitamentoSearch();
+
         $query = SolicitacaoAproveitamento::find()
             ->with(['estudante', 'coordenador'])
             ->orderBy(['id' => SORT_DESC]);
 
         $usuario = Yii::$app->user->identity;
 
-        if (!$usuario) {
-            throw new ForbiddenHttpException('Acesso negado.');
-        }
-
-        // ADMIN vê tudo
-        if ($usuario->isAdmin()) {
-            // sem filtro
-        }
-
-        // ALUNO vê só as próprias
-        elseif ($usuario->isAluno()) {
-            if (!$usuario->estudante_id) {
-                throw new ForbiddenHttpException('Usuário aluno sem vínculo com estudante.');
-            }
-
+        if ($usuario->isAluno()) {
             $query->andWhere(['estudante_id' => $usuario->estudante_id]);
-        }
-
-        // COORDENADOR vê só as dele
-        elseif ($usuario->isCoordenador()) {
-            if (!$usuario->coordenador_id) {
-                throw new ForbiddenHttpException('Usuário coordenador sem vínculo com coordenador.');
-            }
-
+        } elseif ($usuario->isCoordenador()) {
             $query->andWhere(['coordenador_id' => $usuario->coordenador_id]);
         }
-
-        else {
-            throw new ForbiddenHttpException('Perfil sem permissão.');
-        }
+        // ADMIN vê tudo
 
         $dataProvider = new \yii\data\ActiveDataProvider([
             'query' => $query,
@@ -87,7 +64,7 @@ class SolicitacaoAproveitamentoController extends Controller
     public function actionView($id)
     {
         $model = $this->findModel($id);
-        $this->verificarPermissaoSolicitacao($model);
+        $this->verificarPermissaoSolicitacao($model, 'view');
 
         return $this->render('view', [
             'model' => $model,
@@ -96,45 +73,45 @@ class SolicitacaoAproveitamentoController extends Controller
 
     public function actionCreate()
     {
+        $model = new SolicitacaoAproveitamento();
         $usuario = Yii::$app->user->identity;
 
         if (!$usuario) {
-            throw new ForbiddenHttpException('Acesso negado.');
+            throw new \yii\web\ForbiddenHttpException('Você precisa estar logado.');
         }
 
-        // Apenas ALUNO e ADMIN podem criar solicitação
-        if (!$usuario->isAluno() && !$usuario->isAdmin()) {
-            throw new ForbiddenHttpException('Você não tem permissão para criar solicitações.');
-        }
-
-        $model = new SolicitacaoAproveitamento();
-
-        // Se for aluno, força o estudante_id dele
+        // ALUNO: cria apenas para si mesmo
         if ($usuario->isAluno()) {
-            if (!$usuario->estudante_id || !$usuario->estudante) {
-                throw new ForbiddenHttpException('Usuário aluno sem estudante vinculado.');
+            if (!$usuario->estudante) {
+                throw new \yii\web\ForbiddenHttpException('Usuário aluno sem vínculo com estudante.');
             }
 
             $model->estudante_id = $usuario->estudante_id;
 
-            // Coordenador automático pelo curso do aluno
-            $cursoId = $usuario->estudante->curso_id;
-            $coordenador = \app\models\Coordenador::findOne(['curso_id' => $cursoId]);
+            // Define automaticamente o coordenador pelo curso do aluno
+            $coordenador = \app\models\Coordenador::find()
+                ->where(['curso_id' => $usuario->estudante->curso_id])
+                ->one();
 
-            if ($coordenador) {
-                $model->coordenador_id = $coordenador->id;
+            if (!$coordenador) {
+                Yii::$app->session->setFlash('error', 'Não há coordenador vinculado ao curso deste estudante.');
+                return $this->redirect(['index']);
             }
+
+            $model->coordenador_id = $coordenador->id;
         }
 
         if ($this->request->isPost && $model->load($this->request->post())) {
 
-            // Segurança: aluno não pode alterar estudante/coordenador via POST
+            // Impede aluno de alterar estudante/coordenador via POST
             if ($usuario->isAluno()) {
                 $model->estudante_id = $usuario->estudante_id;
 
-                $cursoId = $usuario->estudante->curso_id;
-                $coordenador = \app\models\Coordenador::findOne(['curso_id' => $cursoId]);
-                $model->coordenador_id = $coordenador ? $coordenador->id : null;
+                $coordenador = \app\models\Coordenador::find()
+                    ->where(['curso_id' => $usuario->estudante->curso_id])
+                    ->one();
+
+                $model->coordenador_id = $coordenador?->id;
             }
 
             $transaction = Yii::$app->db->beginTransaction();
@@ -164,14 +141,7 @@ class SolicitacaoAproveitamentoController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-        $this->verificarPermissaoSolicitacao($model);
-
-        $usuario = Yii::$app->user->identity;
-
-        // Coordenador não edita solicitação como formulário de aluno
-        if ($usuario->isCoordenador()) {
-            throw new ForbiddenHttpException('Coordenador não pode editar a solicitação dessa forma.');
-        }
+        $this->verificarPermissaoSolicitacao($model, 'update');
 
         if (!$model->podeEditar()) {
             Yii::$app->session->setFlash('error', 'Esta solicitação não pode mais ser editada.');
@@ -179,14 +149,18 @@ class SolicitacaoAproveitamentoController extends Controller
         }
 
         if ($this->request->isPost && $model->load($this->request->post())) {
+            $usuario = Yii::$app->user->identity;
 
-            // segurança: aluno não altera dono/coordenador
+            // aluno não pode trocar estudante/coordenador manualmente
             if ($usuario->isAluno()) {
                 $model->estudante_id = $usuario->estudante_id;
 
-                $cursoId = $usuario->estudante->curso_id;
-                $coordenador = \app\models\Coordenador::findOne(['curso_id' => $cursoId]);
-                $model->coordenador_id = $coordenador ? $coordenador->id : null;
+                if ($usuario->estudante && $usuario->estudante->curso_id) {
+                    $coordenador = \app\models\Coordenador::findOne(['curso_id' => $usuario->estudante->curso_id]);
+                    if ($coordenador) {
+                        $model->coordenador_id = $coordenador->id;
+                    }
+                }
             }
 
             if ($model->save()) {
@@ -203,31 +177,26 @@ class SolicitacaoAproveitamentoController extends Controller
     public function actionDelete($id)
     {
         $model = $this->findModel($id);
-        $this->verificarPermissaoSolicitacao($model);
-
-        $usuario = Yii::$app->user->identity;
-
-        // idealmente só admin pode excluir
-        if (!$usuario->isAdmin()) {
-            throw new ForbiddenHttpException('Somente o administrador pode excluir solicitações.');
-        }
+        $this->verificarPermissaoSolicitacao($model, 'delete');
 
         $model->delete();
 
         return $this->redirect(['index']);
     }
 
+    protected function findModel($id)
+    {
+        if (($model = SolicitacaoAproveitamento::findOne(['id' => $id])) !== null) {
+            return $model;
+        }
+
+        throw new NotFoundHttpException('The requested page does not exist.');
+    }
+
     public function actionEnviar($id)
     {
         $model = $this->findModel($id);
-        $this->verificarPermissaoSolicitacao($model);
-
-        $usuario = Yii::$app->user->identity;
-
-        // só aluno dono ou admin
-        if (!$usuario->isAluno() && !$usuario->isAdmin()) {
-            throw new ForbiddenHttpException('Você não tem permissão para enviar esta solicitação.');
-        }
+        $this->verificarPermissaoSolicitacao($model, 'enviar');
 
         if (!$model->podeEnviar()) {
             Yii::$app->session->setFlash('error', 'A solicitação precisa ter pelo menos um item para ser enviada.');
@@ -258,14 +227,7 @@ class SolicitacaoAproveitamentoController extends Controller
     public function actionFinalizar($id)
     {
         $model = $this->findModel($id);
-        $this->verificarPermissaoSolicitacao($model);
-
-        $usuario = Yii::$app->user->identity;
-
-        // SOMENTE coordenador da solicitação ou admin pode finalizar
-        if (!$usuario->isCoordenador() && !$usuario->isAdmin()) {
-            throw new ForbiddenHttpException('Somente o coordenador pode finalizar a solicitação.');
-        }
+        $this->verificarPermissaoSolicitacao($model, 'finalizar');
 
         if (!$model->podeFinalizar()) {
             Yii::$app->session->setFlash('error', 'Todos os itens precisam ser analisados antes da finalização.');
@@ -319,25 +281,9 @@ class SolicitacaoAproveitamentoController extends Controller
         return $this->redirect(['view', 'id' => $model->id]);
     }
 
-    protected function findModel($id)
-    {
-        if (($model = SolicitacaoAproveitamento::find()
-            ->with(['estudante', 'coordenador', 'itemEquivalencias', 'logAcaos'])
-            ->where(['id' => $id])
-            ->one()) !== null) {
-            return $model;
-        }
-
-        throw new NotFoundHttpException('A solicitação solicitada não existe.');
-    }
-
-    protected function verificarPermissaoSolicitacao($model)
+    protected function verificarPermissaoSolicitacao($model, $acao = 'view')
     {
         $usuario = Yii::$app->user->identity;
-
-        if (!$usuario) {
-            throw new ForbiddenHttpException('Acesso negado.');
-        }
 
         if ($usuario->isAdmin()) {
             return true;
@@ -347,6 +293,11 @@ class SolicitacaoAproveitamentoController extends Controller
             if ((int)$model->estudante_id !== (int)$usuario->estudante_id) {
                 throw new ForbiddenHttpException('Você não tem permissão para acessar esta solicitação.');
             }
+
+            if (in_array($acao, ['finalizar', 'delete']) || ($acao === 'update' && !$model->podeEditar())) {
+                throw new ForbiddenHttpException('Você não tem permissão para executar esta ação.');
+            }
+
             return true;
         }
 
@@ -354,9 +305,14 @@ class SolicitacaoAproveitamentoController extends Controller
             if ((int)$model->coordenador_id !== (int)$usuario->coordenador_id) {
                 throw new ForbiddenHttpException('Você não tem permissão para acessar esta solicitação.');
             }
+
+            if (in_array($acao, ['create', 'enviar', 'delete', 'update'])) {
+                throw new ForbiddenHttpException('Você não tem permissão para executar esta ação.');
+            }
+
             return true;
         }
 
-        throw new ForbiddenHttpException('Perfil sem permissão.');
+        throw new ForbiddenHttpException('Acesso negado.');
     }
 }
