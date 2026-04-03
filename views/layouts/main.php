@@ -4,9 +4,9 @@
 /** @var string $content */
 
 use app\assets\AppAsset;
+use app\widgets\Alert;
 use yii\bootstrap5\Breadcrumbs;
 use yii\bootstrap5\Html;
-use yii\bootstrap5\Alert;
 use yii\helpers\Url;
 
 AppAsset::register($this);
@@ -575,7 +575,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     ]) ?>
                 <?php endif ?>
 
-                <?= Alert::widget() ?>
+                <?= Alert::widget([
+                    'closeButton' => false,
+                ]) ?>
 
                 <?= $content ?>
             </div>
