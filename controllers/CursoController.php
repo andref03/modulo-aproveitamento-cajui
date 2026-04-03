@@ -2,6 +2,8 @@
 
 namespace app\controllers;
 
+use yii\filters\AccessControl;
+use app\components\AuthHelper;
 use app\models\Curso;
 use app\models\CursoSearch;
 use yii\web\Controller;
@@ -18,17 +20,20 @@ class CursoController extends Controller
      */
     public function behaviors()
     {
-        return array_merge(
-            parent::behaviors(),
-            [
-                'verbs' => [
-                    'class' => VerbFilter::className(),
-                    'actions' => [
-                        'delete' => ['POST'],
+        return [
+            'access' => [
+                'class' => AccessControl::class,
+                'rules' => [
+                    [
+                        'allow' => true,
+                        'roles' => ['@'],
+                        'matchCallback' => function () {
+                            return AuthHelper::isAdmin();
+                        }
                     ],
                 ],
-            ]
-        );
+            ],
+        ];
     }
 
     /**
@@ -131,4 +136,5 @@ class CursoController extends Controller
 
         throw new NotFoundHttpException('The requested page does not exist.');
     }
+
 }
