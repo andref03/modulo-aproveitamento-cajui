@@ -156,13 +156,11 @@ class ItemEquivalencia extends \yii\db\ActiveRecord
             $disciplinaDestino = $this->disciplinaDestino;
 
             if ($disciplinaDestino) {
-                // Regra: carga horária deve ser equivalente em 75% da disciplina de destino
-                $cargaHorariaMinima = $disciplinaDestino->carga_horaria * 0.75;
-                
-                if ($this->disciplina_origem_carga_horaria < $cargaHorariaMinima) {
+                // Regra: não deferir quando a carga horária de origem for inferior à de destino
+                if ($this->disciplina_origem_carga_horaria < $disciplinaDestino->carga_horaria) {
                     $this->addError(
                         'parecer',
-                        "Não é permitido deferir equivalência. A carga horária da disciplina de origem ($this->disciplina_origem_carga_horaria h) deve ser pelo menos 75% da carga horária de destino ({$disciplinaDestino->carga_horaria}h, mínimo: " . ceil($cargaHorariaMinima) . "h)."
+                        "Não é permitido deferir equivalência. A carga horária da disciplina de origem ({$this->disciplina_origem_carga_horaria}h) é inferior à carga horária da disciplina de destino ({$disciplinaDestino->carga_horaria}h)."
                     );
                 }
                 
@@ -191,7 +189,27 @@ class ItemEquivalencia extends \yii\db\ActiveRecord
 
     public function podeEditarAnalise()
     {
-        return $this->solicitacao && in_array($this->solicitacao->status, ['EM_EDICAO', 'EM_ANALISE', 'FINALIZADA']);
+        return $this->solicitacao && $this->solicitacao->status === 'EM_ANALISE';
+    }
+
+    public function usuarioPodeEditarDadosAcademicos()
+    {
+        $usuario = Yii::$app->user->identity;
+
+        return $usuario &&
+            ($usuario->isAdmin() || $usuario->isAluno()) &&
+            $this->solicitacao &&
+            $this->solicitacao->status === 'EM_EDICAO';
+    }
+
+    public function usuarioPodeEditarAnalise()
+    {
+        $usuario = Yii::$app->user->identity;
+
+        return $usuario &&
+            ($usuario->isAdmin() || $usuario->isCoordenador()) &&
+            $this->solicitacao &&
+            $this->solicitacao->status === 'EM_ANALISE';
     }
 
 }

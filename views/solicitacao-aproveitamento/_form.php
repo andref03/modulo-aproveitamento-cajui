@@ -1,26 +1,13 @@
 <?php
 
 use yii\helpers\Html;
-use yii\helpers\ArrayHelper;
 use yii\widgets\ActiveForm;
-use app\models\Estudante;
-use app\models\Coordenador;
 
 /** @var yii\web\View $this */
 /** @var app\models\SolicitacaoAproveitamento $model */
 /** @var yii\widgets\ActiveForm $form */
 
-$estudantes = ArrayHelper::map(
-    Estudante::find()->all(),
-    'id',
-    'nome'
-);
-
-$coordenadores = ArrayHelper::map(
-    Coordenador::find()->all(),
-    'id',
-    'nome'
-);
+$usuario = Yii::$app->user->identity;
 ?>
 
 <div class="solicitacao-aproveitamento-form">
@@ -59,8 +46,28 @@ $coordenadores = ArrayHelper::map(
     ]); ?>
 
     <?php if ($model->isNewRecord): ?>
-        <?= $form->field($model, 'estudante_id')->dropDownList($estudantes, ['prompt' => 'Selecione o estudante']) ?>
-        <?= $form->field($model, 'coordenador_id')->dropDownList($coordenadores, ['prompt' => 'Selecione o coordenador']) ?>
+
+        <?php if ($usuario && $usuario->isAluno()): ?>
+            <div class="alert alert-info">
+                <strong>Aluno:</strong> <?= Html::encode($usuario->estudante->nome ?? '-') ?><br>
+                <strong>Coordenador responsável:</strong> <?= Html::encode($model->coordenador->nome ?? 'Não definido') ?>
+            </div>
+
+            <?= $form->field($model, 'estudante_id')->hiddenInput()->label(false) ?>
+            <?= $form->field($model, 'coordenador_id')->hiddenInput()->label(false) ?>
+
+        <?php elseif ($usuario && $usuario->isAdmin()): ?>
+            <?= $form->field($model, 'estudante_id')->dropDownList(
+                \yii\helpers\ArrayHelper::map(\app\models\Estudante::find()->all(), 'id', 'nome'),
+                ['prompt' => 'Selecione o estudante']
+            ) ?>
+
+            <?= $form->field($model, 'coordenador_id')->dropDownList(
+                \yii\helpers\ArrayHelper::map(\app\models\Coordenador::find()->all(), 'id', 'nome'),
+                ['prompt' => 'Selecione o coordenador']
+            ) ?>
+        <?php endif; ?>
+
     <?php endif; ?>
 
     <div class="form-group">

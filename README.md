@@ -1,99 +1,93 @@
 # Módulo de Aproveitamento de Estudos – Protótipo (Yii2 + PostgreSQL)
 
-##  Detalhes e Como Executar
+> Este projeto pode ser acessado neste [repositório](https://github.com/andref03/modulo-aproveitamento-cajui/tree/login-perfis).
 
-### Descrição
-Este projeto consiste em um protótipo funcional de um módulo para gerenciamento de solicitações de Aproveitamento de Estudos, conforme cenário proposto no teste prático do IFNMG.
+## Sobre o projeto
+Protótipo funcional do módulo de Aproveitamento de Estudos no Sistema Cajuí, conforme estudo de caso técnico.
 
-O sistema permite:
-- Cadastro de solicitações de aproveitamento vinculadas a um estudante;
-- Inclusão de múltiplos itens de equivalência em uma mesma solicitação;
-- Edição da solicitação enquanto estiver em rascunho;
-- Envio da solicitação para análise;
-- Análise individual de cada item por coordenador;
-- Registro de parecer e justificativa;
-- Finalização da solicitação com resultado consolidado.
+O sistema contempla:
+- criação de solicitações por estudante;
+- inclusão de múltiplos itens de equivalência por solicitação;
+- envio para análise;
+- análise item a item por coordenador;
+- finalização com resultado consolidado;
+- rastreabilidade mínima por log de ações.
 
-### Tecnologias utilizadas
-- PHP
-- Yii2
-- PostgreSQL
-- Bootstrap (interface padrão do Yii2)
-- JavaScript / jQuery (itens dinâmicos e persistência parcial)
+## Onde estão os arquivos pedidos no edital
+- Diagrama relacional elaborado: `banco/DER_aproveitamento_estudos.png`
+- Arquivo de criação do banco: `banco/schema.sql`
+- Arquivo de dump/dados de teste: `banco/dados_teste.sql`
+- Arquivo de vídeo demonstrativo: `video/link-video.txt`
 
-### Estrutura do domínio
-O sistema foi modelado com base nas seguintes entidades principais:
-- Estudante
-- Coordenador
-- Curso
-- Disciplina
-- Solicitação de Aproveitamento
-- Item de Equivalência
-- Log de Ações
+## Regras de negócio implementadas (resumo)
+- não permite enviar solicitação sem itens;
+- não permite finalizar com itens pendentes;
+- não permite deferir equivalência quando a carga horária da origem for inferior à da disciplina de destino;
+- não permite deferir disciplina de destino que possui pré-requisito;
+- após finalização, a solicitação não é mais editável.
 
-### Regras de negócio implementadas
-- Não permitir envio de solicitação sem itens;
-- Não permitir finalização da solicitação com itens sem parecer;
-- Não permitir deferimento quando a carga horária da disciplina de origem for inferior a 75% da disciplina de destino;
-- Cada item é analisado individualmente;
-- Solicitações finalizadas não podem ser editadas.
+## Pré-requisitos
+- PHP 8.1+ (recomendado 8.2/8.3)
+- Composer 2+
+- PostgreSQL 12+
+- Extensões PHP comuns do Yii2 (`pdo`, `pdo_pgsql`, `mbstring`, `intl`, `json`, etc.)
 
-### Estados da solicitação
-- Em edição
-- Enviada
-- Em análise
-- Finalizada
+## Como executar (do zero, só com estes arquivos)
+### 1. Receber e descompactar os arquivos
+Descompacte o projeto em uma pasta local, por exemplo:
+- Linux: `/home/usuario/modulo-aproveitamento-cajui`
+- Windows: `C:\projetos\modulo-aproveitamento-cajui`
 
-# Como executar
-
-### 1. Clonar o projeto
+### 2. Entrar na pasta do projeto
 ```bash
-git clone git@github.com:andref03/modulo-aproveitamento-cajui.git
 cd modulo-aproveitamento-cajui
 ```
 
-### 2. Instalar dependências
+### 3. Instalar dependências PHP
+Se a pasta `vendor/` não estiver presente, execute:
 ```bash
 composer install
 ```
 
-### 3. Configurar banco
+### 4. Criar banco e importar dados
+Para evitar erros de permissão ou senha, siga estas recomendações:
 
-Criar banco PostgreSQL e ajustar credenciais no arquivo:
-```php
-config/db.php
-```
-
-Exemplo:
+- Crie o banco usando seu usuário PostgreSQL local, por exemplo via `psql` ou algum gerenciador gráfico como pgAdmin ou DBeaver.
+- Nome sugerido: `aproveitamento_estudos`
+- Configure a conexão no Yii2 em `config/db.php` com host, porta, banco, usuário e senha:
 
 ```php
 return [
     'class' => 'yii\db\Connection',
     'dsn' => 'pgsql:host=localhost;port=5432;dbname=aproveitamento_estudos',
-    'username' => 'postgres',
+    'username' => 'seu_usuario',
     'password' => 'sua_senha',
     'charset' => 'utf8',
 ];
 ```
 
-### 4. Criar estrutura do banco
+- Importe os arquivos SQL em qualquer gerenciador de banco ou via `psql` com o usuário correto, garantindo que ele tenha permissão de leitura dos arquivos:
+- Estrutura do banco: `banco/schema.sql`
+- Dados de teste: `banco/dados_teste.sql`
 
-Executar o script:
+### 5. Subir a aplicação
 ```bash
-psql -U postgres -d aproveitamento_estudos -f banco/schema.sql
+php yii serve --port=8080
 ```
 
-### 5. Popular dados de teste
-```bash
-psql -U postgres -d aproveitamento_estudos -f banco/dados_teste.sql
-```
+### 6. Acessar no navegador
+- `http://localhost:8080`
 
-### 6. Executar o projeto
-```bash
-php yii serve
-```
+## Usuários de teste
+- Admin: `admin@cajui.com` / `admin123`
+- Aluno: `andre.felipe@ifnmg.edu.br` / `aluno123`
+- Coordenadora: `mariana.souza@ifnmg.edu.br` / `coord123`
 
-Acessar:
-```bash
-http://localhost:8080
-```
+## Estrutura principal do domínio
+- Curso
+- Coordenador
+- Estudante
+- Disciplina IFNMG
+- Solicitação de Aproveitamento
+- Item de Equivalência
+- Log de Ação

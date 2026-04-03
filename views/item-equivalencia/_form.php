@@ -6,10 +6,6 @@ use yii\widgets\ActiveForm;
 use app\models\DisciplinaIfnmg;
 use app\models\SolicitacaoAproveitamento;
 
-/** @var yii\web\View $this */
-/** @var app\models\ItemEquivalencia $model */
-/** @var yii\widgets\ActiveForm $form */
-
 $disciplinas = ArrayHelper::map(
     DisciplinaIfnmg::find()->orderBy('nome')->all(),
     'id',
@@ -24,10 +20,20 @@ $solicitacoes = ArrayHelper::map(
     'numero_protocolo'
 );
 
-$podeEditarDadosGerais = true;
+$usuario = Yii::$app->user->identity;
 
-if (!$model->isNewRecord && $model->solicitacao) {
-    $podeEditarDadosGerais = ($model->solicitacao->status === 'EM_EDICAO');
+$podeEditarDadosGerais = false;
+$podeEditarAnalise = false;
+
+if ($usuario->isAdmin()) {
+    $podeEditarDadosGerais = $model->isNewRecord || ($model->solicitacao && $model->solicitacao->status === 'EM_EDICAO');
+    $podeEditarAnalise = !$model->isNewRecord && $model->solicitacao && $model->solicitacao->status === 'EM_ANALISE';
+} elseif ($usuario->isAluno()) {
+    $podeEditarDadosGerais = $model->isNewRecord || ($model->solicitacao && $model->solicitacao->status === 'EM_EDICAO');
+    $podeEditarAnalise = false;
+} elseif ($usuario->isCoordenador()) {
+    $podeEditarDadosGerais = false;
+    $podeEditarAnalise = !$model->isNewRecord && $model->solicitacao && $model->solicitacao->status === 'EM_ANALISE';
 }
 ?>
 
@@ -44,7 +50,7 @@ if (!$model->isNewRecord && $model->solicitacao) {
             </div>
         <?php endif; ?>
     <?php endif; ?>
-    
+
     <?php $form = ActiveForm::begin([
         'options' => ['class' => 'form-horizontal'],
         'fieldConfig' => [
@@ -128,15 +134,28 @@ if (!$model->isNewRecord && $model->solicitacao) {
     <div class="card mb-4 p-3" style="border:1px solid #ddd; border-radius:8px;">
         <h4>Análise do coordenador</h4>
 
-        <?= $form->field($model, 'parecer')->dropDownList([
-            'PENDENTE' => 'Pendente',
-            'DEFERIDO' => 'Deferido',
-            'INDEFERIDO' => 'Indeferido',
-        ], ['prompt' => 'Selecione o parecer']) ?>
+        <?php if ($model->isNewRecord && !$podeEditarAnalise): ?>
+            <p><strong>Parecer:</strong> Pendente</p>
+            <?= Html::activeHiddenInput($model, 'parecer', ['value' => 'PENDENTE']) ?>
+        <?php else: ?>
+            <?= $form->field($model, 'parecer')->dropDownList([
+                'PENDENTE' => 'Pendente',
+                'DEFERIDO' => 'Deferido',
+                'INDEFERIDO' => 'Indeferido',
+            ], [
+                'prompt' => 'Selecione o parecer',
+                'disabled' => !$podeEditarAnalise
+            ]) ?>
+
+            <?php if (!$podeEditarAnalise && !$model->isNewRecord): ?>
+                <?= Html::activeHiddenInput($model, 'parecer') ?>
+            <?php endif; ?>
+        <?php endif; ?>
 
         <?= $form->field($model, 'justificativa')->textarea([
             'rows' => 4,
-            'placeholder' => 'Obrigatória apenas em caso de indeferimento'
+            'placeholder' => 'Obrigatória apenas em caso de indeferimento',
+            'readonly' => !$podeEditarAnalise
         ]) ?>
 
         <?php if (!$model->isNewRecord && $model->data_analise): ?>

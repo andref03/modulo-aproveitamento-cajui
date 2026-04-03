@@ -2,27 +2,30 @@
 
 use app\models\SolicitacaoAproveitamento;
 use yii\helpers\Html;
-use yii\helpers\Url;
-use yii\grid\ActionColumn;
 use yii\grid\GridView;
 use yii\widgets\Pjax;
+
 /** @var yii\web\View $this */
 /** @var app\models\SolicitacaoAproveitamentoSearch $searchModel */
 /** @var yii\data\ActiveDataProvider $dataProvider */
 
 $this->title = 'Solicitações';
 $this->params['breadcrumbs'][] = $this->title;
+
+$usuario = Yii::$app->user->identity;
 ?>
+
 <div class="solicitacao-aproveitamento-index">
 
     <h1><?= Html::encode($this->title) ?></h1>
 
-    <p>
-        <?= Html::a('Nova Solicitação', ['create'], ['class' => 'btn btn-success']) ?>
-    </p>
+    <?php if ($usuario->isAluno() || $usuario->isAdmin()): ?>
+        <p>
+            <?= Html::a('Nova Solicitação', ['create'], ['class' => 'btn btn-success']) ?>
+        </p>
+    <?php endif; ?>
 
     <?php Pjax::begin(); ?>
-    <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
@@ -64,12 +67,10 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'label' => 'Resultado Final',
                 'value' => function ($model) {
-                    if ($model->resultado_final) {
-                        return $model->resultadoFinalFormatado;
-                    }
-                    return '-';
+                    return $model->resultado_final
+                        ? $model->resultadoFinalFormatado
+                        : '-';
                 },
-                'format' => 'raw',
             ],
             [
                 'label' => 'Itens',
@@ -82,16 +83,46 @@ $this->params['breadcrumbs'][] = $this->title;
                 'class' => 'yii\grid\ActionColumn',
                 'header' => 'Ações',
                 'template' => '{edit} {view} {delete}',
+                'contentOptions' => ['class' => 'text-nowrap'],
                 'buttons' => [
-                    'edit' => function ($url, $model, $key) {
-                        if ($model->podeEditar()) {
-                            return \yii\helpers\Html::a(
-                                '<span class="glyphicon glyphicon-pencil"></span>',
+                    'view' => function ($url, $model, $key) {
+                        return Html::a(
+                            'Visualizar',
+                            ['view', 'id' => $model->id],
+                            [
+                                'title' => 'Visualizar',
+                                'class' => 'action-btn action-btn-view',
+                                'aria-label' => 'Visualizar solicitação',
+                            ]
+                        );
+                    },
+                    'edit' => function ($url, $model, $key) use ($usuario) {
+                        if (($usuario->isAluno() || $usuario->isAdmin()) && $model->podeEditar()) {
+                            return Html::a(
+                                'Editar',
                                 ['update', 'id' => $model->id],
                                 [
                                     'title' => 'Editar',
-                                    'class' => 'btn btn-xs btn-primary',
-                                    'style' => 'margin-right: 5px;'
+                                    'class' => 'action-btn action-btn-edit',
+                                    'aria-label' => 'Editar solicitação',
+                                ]
+                            );
+                        }
+                        return '';
+                    },
+                    'delete' => function ($url, $model, $key) use ($usuario) {
+                        if (($usuario->isAluno() || $usuario->isAdmin()) && $model->podeEditar()) {
+                            return Html::a(
+                                'Excluir',
+                                ['delete', 'id' => $model->id],
+                                [
+                                    'title' => 'Excluir',
+                                    'class' => 'action-btn action-btn-delete',
+                                    'aria-label' => 'Excluir solicitação',
+                                    'data' => [
+                                        'confirm' => 'Tem certeza que deseja excluir esta solicitação?',
+                                        'method' => 'post',
+                                    ],
                                 ]
                             );
                         }

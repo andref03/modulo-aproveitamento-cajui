@@ -12,14 +12,19 @@ use yii\widgets\Pjax;
 
 $this->title = 'Disciplinas';
 $this->params['breadcrumbs'][] = $this->title;
+
+$usuario = Yii::$app->user->identity;
+$isAdmin = $usuario && $usuario->isAdmin();
 ?>
 <div class="disciplina-ifnmg-index">
 
     <h1><?= Html::encode($this->title) ?></h1>
 
-    <p>
-        <?= Html::a('Nova Disciplina', ['create'], ['class' => 'btn btn-success']) ?>
-    </p>
+    <?php if ($isAdmin): ?>
+        <p>
+            <?= Html::a('Nova Disciplina', ['create'], ['class' => 'btn btn-success']) ?>
+        </p>
+    <?php endif; ?>
 
     <?php Pjax::begin(); ?>
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
@@ -34,11 +39,20 @@ $this->params['breadcrumbs'][] = $this->title;
             'codigo',
             'nome',
             'carga_horaria',
+            [
+                'label' => 'Pré-requisito',
+                'value' => function (DisciplinaIfnmg $model) {
+                    return $model->preRequisito
+                        ? $model->preRequisito->codigo . ' - ' . $model->preRequisito->nome
+                        : '-';
+                },
+            ],
             'ementa:ntext',
             //'curso_id',
             //'pre_requisito_id',
             [
                 'class' => ActionColumn::className(),
+                'template' => $isAdmin ? '{view} {update} {delete}' : '{view}',
                 'urlCreator' => function ($action, DisciplinaIfnmg $model, $key, $index, $column) {
                     return Url::toRoute([$action, 'id' => $model->id]);
                  }

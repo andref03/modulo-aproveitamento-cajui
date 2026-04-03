@@ -7,16 +7,11 @@ use app\models\ItemEquivalencia;
 use app\models\ItemEquivalenciaSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
+use yii\web\ForbiddenHttpException;
 use yii\filters\VerbFilter;
 
-/**
- * ItemEquivalenciaController implements the CRUD actions for ItemEquivalencia model.
- */
 class ItemEquivalenciaController extends Controller
 {
-    /**
-     * @inheritDoc
-     */
     public function behaviors()
     {
         return array_merge(
@@ -32,15 +27,22 @@ class ItemEquivalenciaController extends Controller
         );
     }
 
-    /**
-     * Lists all ItemEquivalencia models.
-     *
-     * @return string
-     */
     public function actionIndex()
     {
         $searchModel = new ItemEquivalenciaSearch();
         $dataProvider = $searchModel->search($this->request->queryParams);
+
+        $usuario = Yii::$app->user->identity;
+        $query = $dataProvider->query;
+
+        if ($usuario->isAluno()) {
+            $query->joinWith('solicitacao')
+                  ->andWhere(['solicitacao_aproveitamento.estudante_id' => $usuario->estudante_id]);
+        } elseif ($usuario->isCoordenador()) {
+            $query->joinWith('solicitacao')
+                  ->andWhere(['solicitacao_aproveitamento.coordenador_id' => $usuario->coordenador_id]);
+        }
+        // admin vê tudo
 
         return $this->render('index', [
             'searchModel' => $searchModel,
@@ -48,26 +50,24 @@ class ItemEquivalenciaController extends Controller
         ]);
     }
 
-    /**
-     * Displays a single ItemEquivalencia model.
-     * @param int $id ID
-     * @return string
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     public function actionView($id)
     {
+        $model = $this->findModel($id);
+        $this->verificarPermissaoItem($model, 'view');
+
         return $this->render('view', [
-            'model' => $this->findModel($id),
+            'model' => $model,
         ]);
     }
 
-    /**
-     * Creates a new ItemEquivalencia model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return string|\yii\web\Response
-     */
     public function actionCreate($solicitacao_id = null)
     {
+        $usuario = Yii::$app->user->identity;
+
+        if (!$usuario->isAluno() && !$usuario->isAdmin()) {
+            throw new ForbiddenHttpException('Apenas alunos e administradores podem cadastrar itens.');
+        }
+
         $model = new ItemEquivalencia();
 
         if ($solicitacao_id !== null) {
@@ -75,15 +75,60 @@ class ItemEquivalenciaController extends Controller
 
             $solicitacao = \app\models\SolicitacaoAproveitamento::findOne($solicitacao_id);
 
-            if ($solicitacao && !$solicitacao->podeEditar()) {
+            if (!$solicitacao) {
+                throw new NotFoundHttpException('Solicitação não encontrada.');
+            }
+
+            $this->verificarPermissaoSolicitacaoDoItem($solicitacao, 'create');
+
+            if (!$solicitacao->podeEditar()) {
                 Yii::$app->session->setFlash('error', 'Não é possível adicionar itens a esta solicitação.');
                 return $this->redirect(['solicitacao-aproveitamento/view', 'id' => $solicitacao_id]);
             }
         }
 
-        if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
-            Yii::$app->session->setFlash('success', 'Item adicionado com sucesso.');
-            return $this->redirect(['solicitacao-aproveitamento/update', 'id' => $model->solicitacao_id]);
+        if ($this->request->isPost && $model->load($this->request->post())) {
+            $solicitacao = \app\models\SolicitacaoAproveitamento::findOne($model->solicitacao_id);
+
+            if (!$solicitacao) {
+                throw new NotFoundHttpException('Solicitação não encontrada.');
+            }
+
+            $this->verificarPermissaoSolicitacaoDoItem($solicitacao, 'create');
+
+            if (!$solicitacao->podeEditar()) {
+                Yii::$app->session->setFlash('error', 'Não é possível adicionar itens a esta solicitação.');
+                return $this->redirect(['solicitacao-aproveitamento/view', 'id' => $solicitacao->id]);
+            }
+
+            // Aluno só cadastra o item acadêmico; análise inicia sempre pendente.
+            if ($usuario->isAluno()) {
+                $model->parecer = 'PENDENTE';
+                $model->justificativa = null;
+                $model->data_analise = null;
+            }
+
+            try {
+                if ($model->save()) {
+                    Yii::$app->session->setFlash('success', 'Item adicionado com sucesso.');
+                    return $this->redirect(['solicitacao-aproveitamento/update', 'id' => $model->solicitacao_id]);
+                }
+            } catch (\yii\db\IntegrityException $e) {
+                // Em bases restauradas por dump, a sequence pode ficar defasada.
+                // Tentamos sincronizar e salvar novamente automaticamente.
+                if (str_contains($e->getMessage(), 'item_equivalencia_pkey')) {
+                    $this->sincronizarSequenciaItemEquivalencia();
+
+                    if ($model->save()) {
+                        Yii::$app->session->setFlash('success', 'Item adicionado com sucesso.');
+                        return $this->redirect(['solicitacao-aproveitamento/update', 'id' => $model->solicitacao_id]);
+                    }
+                }
+
+                Yii::error($e->getMessage(), __METHOD__);
+            }
+
+            Yii::$app->session->setFlash('error', 'Não foi possível salvar o item. Verifique os dados informados.');
         }
 
         $model->loadDefaultValues();
@@ -93,23 +138,12 @@ class ItemEquivalenciaController extends Controller
         ]);
     }
 
-    /**
-     * Updates an existing ItemEquivalencia model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param int $id ID
-     * @return string|\yii\web\Response
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
         $solicitacao = $model->solicitacao;
 
-        // Só bloqueia se estiver em um estado inválido
-        if (!in_array($solicitacao->status, ['EM_EDICAO', 'EM_ANALISE', 'FINALIZADA'])) {
-            Yii::$app->session->setFlash('error', 'Não é possível editar este item no estado atual da solicitação.');
-            return $this->redirect(['solicitacao-aproveitamento/view', 'id' => $solicitacao->id]);
-        }
+        $this->verificarPermissaoItem($model, 'update');
 
         $parecerAnterior = $model->parecer;
 
@@ -119,7 +153,6 @@ class ItemEquivalenciaController extends Controller
             try {
                 if ($model->load($this->request->post()) && $model->save()) {
 
-                    // Registra log se o parecer mudou
                     if ($parecerAnterior !== $model->parecer) {
                         $descricao = "Item #{$model->id} analisado. Disciplina: {$model->disciplina_origem_nome}. Parecer: {$model->parecerFormatado}";
 
@@ -135,7 +168,6 @@ class ItemEquivalenciaController extends Controller
                     $transaction->commit();
                     Yii::$app->session->setFlash('success', 'Item atualizado com sucesso.');
 
-                    // Se estiver finalizada ou em análise, faz mais sentido voltar para view
                     if (in_array($solicitacao->status, ['EM_ANALISE', 'FINALIZADA'])) {
                         return $this->redirect(['solicitacao-aproveitamento/view', 'id' => $model->solicitacao_id]);
                     }
@@ -156,17 +188,12 @@ class ItemEquivalenciaController extends Controller
         ]);
     }
 
-    /**
-     * Deletes an existing ItemEquivalencia model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param int $id ID
-     * @return \yii\web\Response
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     public function actionDelete($id)
     {
         $model = $this->findModel($id);
         $solicitacao = $model->solicitacao;
+
+        $this->verificarPermissaoItem($model, 'delete');
 
         if (!$solicitacao->podeEditar()) {
             Yii::$app->session->setFlash('error', 'Não é permitido excluir itens de uma solicitação que já foi enviada para análise.');
@@ -185,13 +212,6 @@ class ItemEquivalenciaController extends Controller
         return $this->redirect(['solicitacao-aproveitamento/update', 'id' => $solicitacaoId]);
     }
 
-    /**
-     * Finds the ItemEquivalencia model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
-     * @param int $id ID
-     * @return ItemEquivalencia the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     protected function findModel($id)
     {
         if (($model = ItemEquivalencia::findOne(['id' => $id])) !== null) {
@@ -199,5 +219,81 @@ class ItemEquivalenciaController extends Controller
         }
 
         throw new NotFoundHttpException('The requested page does not exist.');
+    }
+
+    protected function verificarPermissaoItem($item, $acao = 'view')
+    {
+        $usuario = Yii::$app->user->identity;
+        $solicitacao = $item->solicitacao;
+
+        if (!$solicitacao) {
+            throw new ForbiddenHttpException('Item sem solicitação vinculada.');
+        }
+
+        if ($usuario->isAdmin()) {
+            return true;
+        }
+
+        if ($usuario->isAluno()) {
+            if ((int)$solicitacao->estudante_id !== (int)$usuario->estudante_id) {
+                throw new ForbiddenHttpException('Você não tem permissão para acessar este item.');
+            }
+
+            // aluno só mexe enquanto estiver em edição
+            if (in_array($acao, ['update', 'delete']) && !$solicitacao->podeEditar()) {
+                throw new ForbiddenHttpException('Você não pode alterar itens após envio para análise.');
+            }
+
+            return true;
+        }
+
+        if ($usuario->isCoordenador()) {
+            if ((int)$solicitacao->coordenador_id !== (int)$usuario->coordenador_id) {
+                throw new ForbiddenHttpException('Você não tem permissão para acessar este item.');
+            }
+
+            // coordenador não cria/exclui item acadêmico do aluno
+            if (in_array($acao, ['create', 'delete'])) {
+                throw new ForbiddenHttpException('Você não tem permissão para executar esta ação.');
+            }
+
+            return true;
+        }
+
+        throw new ForbiddenHttpException('Acesso negado.');
+    }
+
+    protected function verificarPermissaoSolicitacaoDoItem($solicitacao, $acao = 'create')
+    {
+        $usuario = Yii::$app->user->identity;
+
+        if ($usuario->isAdmin()) {
+            return true;
+        }
+
+        if ($usuario->isAluno()) {
+            if ((int)$solicitacao->estudante_id !== (int)$usuario->estudante_id) {
+                throw new ForbiddenHttpException('Você não tem permissão para usar esta solicitação.');
+            }
+
+            return true;
+        }
+
+        throw new ForbiddenHttpException('Acesso negado.');
+    }
+
+    protected function sincronizarSequenciaItemEquivalencia()
+    {
+        if (Yii::$app->db->driverName !== 'pgsql') {
+            return;
+        }
+
+        Yii::$app->db->createCommand("
+            SELECT setval(
+                pg_get_serial_sequence('item_equivalencia', 'id'),
+                COALESCE((SELECT MAX(id) FROM item_equivalencia), 0) + 1,
+                false
+            )
+        ")->execute();
     }
 }

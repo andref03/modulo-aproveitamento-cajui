@@ -10,21 +10,26 @@ $this->title = $model->id;
 $this->params['breadcrumbs'][] = ['label' => 'Disciplinas', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 \yii\web\YiiAsset::register($this);
+
+$usuario = Yii::$app->user->identity;
+$isAdmin = $usuario && $usuario->isAdmin();
 ?>
 <div class="disciplina-ifnmg-view">
 
     <h1><?= Html::encode($this->title) ?></h1>
 
-    <p>
-        <?= Html::a('Editar', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
-        <?= Html::a('Excluir', ['delete', 'id' => $model->id], [
-            'class' => 'btn btn-danger',
-            'data' => [
-                'confirm' => 'Você tem certeza que deseja excluir esta disciplina?',
-                'method' => 'post',
-            ],
-        ]) ?>
-    </p>
+    <?php if ($isAdmin): ?>
+        <p>
+            <?= Html::a('Editar', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
+            <?= Html::a('Excluir', ['delete', 'id' => $model->id], [
+                'class' => 'btn btn-danger',
+                'data' => [
+                    'confirm' => 'Você tem certeza que deseja excluir esta disciplina?',
+                    'method' => 'post',
+                ],
+            ]) ?>
+        </p>
+    <?php endif; ?>
 
     <?= DetailView::widget([
         'model' => $model,
