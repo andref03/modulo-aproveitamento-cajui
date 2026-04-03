@@ -299,7 +299,11 @@ class SolicitacaoAproveitamentoController extends Controller
                 throw new ForbiddenHttpException('Você não tem permissão para acessar esta solicitação.');
             }
 
-            if (in_array($acao, ['finalizar', 'delete']) || ($acao === 'update' && !$model->podeEditar())) {
+            if ($acao === 'finalizar') {
+                throw new ForbiddenHttpException('Você não tem permissão para executar esta ação.');
+            }
+
+            if (in_array($acao, ['update', 'delete']) && !$model->podeEditar()) {
                 throw new ForbiddenHttpException('Você não tem permissão para executar esta ação.');
             }
 
