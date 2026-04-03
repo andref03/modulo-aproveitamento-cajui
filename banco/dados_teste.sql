@@ -101,7 +101,15 @@ INSERT INTO solicitacao_aproveitamento (
 (7, 'APR-202604020007', 7, 4, 'EM_ANALISE', NULL, '2026-04-02 10:10:00', '2026-04-02 10:40:00', NULL),
 (8, 'APR-202604020008', 8, 4, 'FINALIZADA', 'DEFERIDO_TOTAL', '2026-04-02 07:50:00', '2026-04-02 08:10:00', '2026-04-02 10:50:00'),
 (9, 'APR-202604020009', 9, 5, 'EM_EDICAO', NULL, '2026-04-02 10:20:00', NULL, NULL),
-(10, 'APR-202604020010', 10, 5, 'EM_ANALISE', NULL, '2026-04-02 10:25:00', '2026-04-02 10:55:00', NULL);
+(10, 'APR-202604020010', 10, 5, 'EM_ANALISE', NULL, '2026-04-02 10:25:00', '2026-04-02 10:55:00', NULL),
+
+-- Cenários extras para demonstração em vídeo
+-- 11: em edição e sem itens (teste de bloqueio de envio sem item)
+(11, 'APR-202604020011', 1, 1, 'EM_EDICAO', NULL, '2026-04-03 09:00:00', NULL, NULL),
+-- 12: em análise com item pendente (teste de bloqueio de finalização)
+(12, 'APR-202604020012', 2, 1, 'EM_ANALISE', NULL, '2026-04-03 09:10:00', '2026-04-03 09:20:00', NULL),
+-- 13: em análise para testar regras acadêmicas de deferimento
+(13, 'APR-202604020013', 1, 1, 'EM_ANALISE', NULL, '2026-04-03 09:15:00', '2026-04-03 09:25:00', NULL);
 
 -- =========================================================
 -- ITENS DE EQUIVALÊNCIA
@@ -131,7 +139,17 @@ INSERT INTO item_equivalencia (
 (18, 8, 'Geometria Analítica', 60, 'Retas, planos, vetores e cônicas.', 'Instituto Superior Lambda', 13, 'DEFERIDO', NULL, '2026-04-02 09:25:00'),
 (19, 9, 'Gestão Governamental', 60, 'Princípios de gestão pública e políticas institucionais.', 'Universidade Pública Norte', 15, 'PENDENTE', NULL, NULL),
 (20, 10, 'Políticas Institucionais', 60, 'Planejamento, execução e avaliação de políticas públicas.', 'Universidade Pública Norte', 16, 'PENDENTE', NULL, NULL),
-(21, 10, 'Legislação Administrativa', 60, 'Atos administrativos, princípios e estrutura do Estado.', 'Universidade Pública Norte', 17, 'PENDENTE', NULL, NULL);
+(21, 10, 'Legislação Administrativa', 60, 'Atos administrativos, princípios e estrutura do Estado.', 'Universidade Pública Norte', 17, 'PENDENTE', NULL, NULL),
+
+-- Solicitação 12: um item deferido e um pendente para bloquear finalização
+(22, 12, 'Fundamentos de Programação', 80, 'Algoritmos e estruturas básicas.', 'Universidade Alfa', 1, 'DEFERIDO', NULL, '2026-04-03 09:30:00'),
+(23, 12, 'Programação Web Básica', 60, 'HTML, CSS e JS introdutório.', 'Universidade Alfa', 4, 'PENDENTE', NULL, NULL),
+
+-- Solicitação 13: itens para demonstrar regras de indeferimento de deferimento
+-- item 24: carga horária insuficiente para deferir (40h < 75% de 80h)
+(24, 13, 'Cálculo Diferencial', 40, 'Limites e derivadas.', 'Faculdade Beta', 1, 'PENDENTE', NULL, NULL),
+-- item 25: disciplina destino com pré-requisito (não pode deferir)
+(25, 13, 'Banco de Dados Aplicado', 80, 'Modelagem e SQL avançado.', 'Faculdade Beta', 2, 'PENDENTE', NULL, NULL);
 
 -- =========================================================
 -- LOGS DE AÇÃO
@@ -153,7 +171,15 @@ INSERT INTO log_acao (solicitacao_id, descricao, usuario_nome, data_hora) VALUES
 (5, 'Solicitação criada.', 'Sistema', '2026-04-02 08:20:00'),
 (5, 'Solicitação enviada para análise.', 'João Victor Mendes', '2026-04-02 08:50:00'),
 (5, 'Todos os itens foram indeferidos.', 'Fernanda Rocha', '2026-04-02 11:15:00'),
-(5, 'Solicitação finalizada com resultado INDEFERIDO_TOTAL.', 'Fernanda Rocha', '2026-04-02 11:20:00');
+(5, 'Solicitação finalizada com resultado INDEFERIDO_TOTAL.', 'Fernanda Rocha', '2026-04-02 11:20:00'),
+
+-- Logs dos cenários extras
+(11, 'Solicitação criada para cenário de teste sem itens.', 'Sistema', '2026-04-03 09:00:00'),
+(12, 'Solicitação criada para cenário de finalização com item pendente.', 'Sistema', '2026-04-03 09:10:00'),
+(12, 'Solicitação enviada para análise.', 'Beatriz Costa', '2026-04-03 09:20:00'),
+(12, 'Item #22 analisado como DEFERIDO.', 'Mariana Souza', '2026-04-03 09:30:00'),
+(13, 'Solicitação criada para cenário de regras acadêmicas.', 'Sistema', '2026-04-03 09:15:00'),
+(13, 'Solicitação enviada para análise.', 'André Felipe Lopes', '2026-04-03 09:25:00');
 
 -- =========================================================
 -- USUÁRIOS
