@@ -39,6 +39,14 @@ $isAdmin = $usuario && $usuario->isAdmin();
             'codigo',
             'nome',
             'carga_horaria',
+            [
+                'label' => 'Pré-requisito',
+                'value' => function (DisciplinaIfnmg $model) {
+                    return $model->preRequisito
+                        ? $model->preRequisito->codigo . ' - ' . $model->preRequisito->nome
+                        : '-';
+                },
+            ],
             'ementa:ntext',
             //'curso_id',
             //'pre_requisito_id',
