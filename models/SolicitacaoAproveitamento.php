@@ -227,9 +227,65 @@ class SolicitacaoAproveitamento extends \yii\db\ActiveRecord
         $log = new LogAcao();
         $log->solicitacao_id = $this->id;
         $log->descricao = $descricao;
-        $log->usuario_nome = Yii::$app->user->isGuest ? 'Anônimo' : Yii::$app->user->identity->username;
+        $log->usuario_nome = Yii::$app->user->isGuest ? 'Anônimo' : Yii::$app->user->identity->nome;
         $log->data_hora = date('Y-m-d H:i:s');
         return $log->save();
     }
 
+    public function podeSerEditadaPeloUsuario()
+    {
+        if (Yii::$app->user->isGuest) {
+            return false;
+        }
+
+        $usuario = Yii::$app->user->identity;
+
+        if ($usuario->isAdmin()) {
+            return $this->podeEditar();
+        }
+
+        if ($usuario->isAluno()) {
+            return $this->podeEditar() && (int)$this->estudante_id === (int)$usuario->estudante_id;
+        }
+
+        return false;
+    }
+
+    public function podeSerFinalizadaPeloUsuario()
+    {
+        if (Yii::$app->user->isGuest) {
+            return false;
+        }
+
+        $usuario = Yii::$app->user->identity;
+
+        if ($usuario->isAdmin()) {
+            return $this->podeFinalizar();
+        }
+
+        if ($usuario->isCoordenador()) {
+            return $this->podeFinalizar() && (int)$this->coordenador_id === (int)$usuario->coordenador_id;
+        }
+
+        return false;
+    }
+
+    public function podeSerEnviadaPeloUsuario()
+    {
+        if (Yii::$app->user->isGuest) {
+            return false;
+        }
+
+        $usuario = Yii::$app->user->identity;
+
+        if ($usuario->isAdmin()) {
+            return $this->podeEnviar();
+        }
+
+        if ($usuario->isAluno()) {
+            return $this->podeEnviar() && (int)$this->estudante_id === (int)$usuario->estudante_id;
+        }
+
+        return false;
+    }
 }

@@ -13,6 +13,8 @@ $this->params['breadcrumbs'][] = ['label' => 'Solicitações de Aproveitamento',
 $this->params['breadcrumbs'][] = $this->title;
 
 \yii\web\YiiAsset::register($this);
+
+$usuario = Yii::$app->user->identity;
 ?>
 
 <div class="solicitacao-aproveitamento-view">
@@ -20,24 +22,40 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
-        <?php if ($model->podeEditar()): ?>
+        <?php if ($model->podeSerEditadaPeloUsuario()): ?>
             <?= Html::a('Editar', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
         <?php endif; ?>
 
-        <?= Html::a('Excluir', ['delete', 'id' => $model->id], [
-            'class' => 'btn btn-danger',
-            'data' => [
-                'confirm' => 'Tem certeza que deseja excluir esta solicitação?',
-                'method' => 'post',
-            ],
-        ]) ?>
+        <?php if ($usuario && $usuario->isAdmin()): ?>
+            <?= Html::a('Excluir', ['delete', 'id' => $model->id], [
+                'class' => 'btn btn-danger',
+                'data' => [
+                    'confirm' => 'Tem certeza que deseja excluir esta solicitação?',
+                    'method' => 'post',
+                ],
+            ]) ?>
+        <?php endif; ?>
+
+        <?php if ($model->podeSerEnviadaPeloUsuario()): ?>
+            <?= Html::beginForm(['enviar', 'id' => $model->id], 'post', ['style' => 'display:inline-block; margin-left:8px;']) ?>
+                <?= Html::submitButton('Enviar para análise', [
+                    'class' => 'btn btn-warning',
+                    'data' => [
+                        'confirm' => 'Após enviar, você não poderá mais editar esta solicitação. Deseja continuar?',
+                    ],
+                ]) ?>
+            <?= Html::endForm() ?>
+        <?php endif; ?>
     </p>
 
-    <?php if ($model->podeFinalizar()): ?>
+    <?php if ($model->podeSerFinalizadaPeloUsuario()): ?>
         <p>
             <?= Html::beginForm(['finalizar', 'id' => $model->id], 'post') ?>
                 <?= Html::submitButton('Finalizar Solicitação', [
-                    'class' => 'btn btn-success'
+                    'class' => 'btn btn-success',
+                    'data' => [
+                        'confirm' => 'Tem certeza que deseja finalizar esta solicitação?',
+                    ],
                 ]) ?>
             <?= Html::endForm() ?>
         </p>
@@ -98,10 +116,10 @@ $this->params['breadcrumbs'][] = $this->title;
     <?php if (count($model->itemEquivalencias) > 0): ?>
         <?= GridView::widget([
             'dataProvider' => new ArrayDataProvider([
-            'allModels' => $model->itemEquivalencias,
-            'key' => 'id',
-            'pagination' => false,
-        ]),
+                'allModels' => $model->itemEquivalencias,
+                'key' => 'id',
+                'pagination' => false,
+            ]),
             'columns' => [
                 'disciplina_origem_nome',
                 'disciplina_origem_carga_horaria',
@@ -117,7 +135,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 [
                     'class' => 'yii\grid\ActionColumn',
                     'controller' => 'item-equivalencia',
-                    'template' => '{view} {update}',
+                    'template' => $model->podeSerEditadaPeloUsuario() ? '{view} {update}' : '{view}',
                 ],
             ],
         ]) ?>
@@ -131,10 +149,8 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <h3>Histórico de Ações</h3>
 
-    <?php 
-        $logs = $model->logAcaos;
-        if (count($logs) > 0):
-    ?>
+    <?php $logs = $model->logAcaos; ?>
+    <?php if (count($logs) > 0): ?>
         <div class="table-responsive">
             <table class="table table-sm table-striped">
                 <thead>
@@ -147,9 +163,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 <tbody>
                     <?php foreach ($logs as $log): ?>
                         <tr>
-                            <td>
-                                <?= Yii::$app->formatter->asDatetime($log->data_hora, 'php:d/m/Y H:i') ?>
-                            </td>
+                            <td><?= Yii::$app->formatter->asDatetime($log->data_hora, 'php:d/m/Y H:i') ?></td>
                             <td><?= Html::encode($log->usuario_nome) ?></td>
                             <td><?= Html::encode($log->descricao) ?></td>
                         </tr>
