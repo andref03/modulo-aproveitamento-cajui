@@ -43,6 +43,25 @@ $config = [
             ],
         ],
         'db' => $db,
+        'i18n' => [
+            'translations' => [
+                'yii' => [
+                    'class' => 'yii\i18n\PhpMessageSource',
+                    'basePath' => '@app/messages',
+                    'sourceLanguage' => 'pt-BR',
+                ],
+                '*' => [
+                    'class' => 'yii\i18n\PhpMessageSource',
+                    'basePath' => '@app/messages',
+                    'sourceLanguage' => 'pt-BR',
+                ],
+            ],
+        ],
+        'formatter' => [
+            'dateFormat' => 'php:d/m/Y',
+            'datetimeFormat' => 'php:d/m/Y H:i:s',
+            'timeFormat' => 'php:H:i:s',
+        ],
         /*
         'urlManager' => [
             'enablePrettyUrl' => true,

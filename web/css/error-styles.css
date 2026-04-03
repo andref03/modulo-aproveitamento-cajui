@@ -1,0 +1,83 @@
+/* Mensagens de erro do formulário */
+.help-block.help-block-error,
+.invalid-feedback,
+.error-message {
+    display: block;
+    color: #dc3545 !important;
+    font-weight: 500;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Campo com erro */
+.has-error input,
+.has-error select,
+.has-error textarea,
+input.is-invalid,
+select.is-invalid,
+textarea.is-invalid {
+    border: 1px solid #dc3545 !important;
+    background-color: #fff8f8 !important;
+}
+
+/* Label com erro */
+.has-error label,
+.form-group.has-error label {
+    color: #dc3545;
+}
+
+/* Yii2 Default error styles */
+.field-itemequivalencia,
+.field-solicitacaoaproveitamento {
+    position: relative;
+}
+
+.field-itemequivalencia.has-error,
+.field-solicitacaoaproveitamento.has-error {
+    margin-bottom: 1.5rem;
+}
+
+/* Destaque visual para campos com erro */
+.form-group.has-error .form-control {
+    border-color: #dc3545;
+    padding-right: calc(1.5em + .75rem);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e %3ccircle cx='6' cy='6' r='4.5'/%3e %3cpath fill='%23dc3545' d='M6.8 3.5h-1.6v3.6h1.6z'/%3e %3ccircle cx='6' cy='10' r='.6' fill='%23dc3545'/%3e %3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(.375em + .1875rem) center;
+    background-size: calc(.75em + .375rem) calc(.75em + .375rem);
+}
+
+/* Animação suave para as mensagens */
+.help-block {
+    animation: slideIn 0.3s ease-in-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Card de erro */
+.alert-danger,
+.error-box {
+    border: 1px solid #f5c6cb;
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    border-radius: 0.25rem;
+}
+
+/* Destaque de campo obrigatório */
+.required label::after {
+    content: ' *';
+    color: #dc3545;
+    font-weight: bold;
+    margin-left: 3px;
+}

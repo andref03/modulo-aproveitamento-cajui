@@ -12,6 +12,25 @@ use yii\bootstrap5\NavBar;
 
 AppAsset::register($this);
 
+// Registra CSS customizado para mensagens de erro em vermelho
+$this->registerCss('
+    .help-block {
+        color: #dc3545;
+        font-weight: 500;
+        display: block;
+        margin-top: 0.25rem;
+    }
+    .field-itemequivalencia.has-error input,
+    .field-itemequivalencia.has-error select,
+    .field-itemequivalencia.has-error textarea,
+    .field-solicitacaoaproveitamento.has-error input,
+    .field-solicitacaoaproveitamento.has-error select,
+    .field-solicitacaoaproveitamento.has-error textarea {
+        border: 1px solid #dc3545 !important;
+        background-color: #fff8f8 !important;
+    }
+');
+
 $this->registerCsrfMetaTags();
 $this->registerMetaTag(['charset' => Yii::$app->charset], 'charset');
 $this->registerMetaTag(['name' => 'viewport', 'content' => 'width=device-width, initial-scale=1, shrink-to-fit=no']);

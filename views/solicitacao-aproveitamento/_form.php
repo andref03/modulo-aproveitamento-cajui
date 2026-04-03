@@ -49,7 +49,14 @@ $coordenadores = ArrayHelper::map(
         </div>
     <?php endif; ?>
 
-    <?php $form = ActiveForm::begin(); ?>
+    <?php $form = ActiveForm::begin([
+        'options' => ['class' => 'form-horizontal'],
+        'fieldConfig' => [
+            'template' => "{label}\n{input}\n{error}",
+            'errorOptions' => ['class' => 'help-block help-block-error', 'tag' => 'div'],
+            'options' => ['class' => 'form-group mb-3'],
+        ],
+    ]); ?>
 
     <?php if ($model->isNewRecord): ?>
         <?= $form->field($model, 'estudante_id')->dropDownList($estudantes, ['prompt' => 'Selecione o estudante']) ?>

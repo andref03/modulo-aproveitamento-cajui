@@ -43,7 +43,7 @@ class SolicitacaoAproveitamento extends \yii\db\ActiveRecord
             [['numero_protocolo', 'resultado_final', 'data_envio', 'data_finalizacao'], 'default', 'value' => null],
             [['status'], 'default', 'value' => 'EM_EDICAO'],
 
-            [['estudante_id'], 'required'],
+            [['estudante_id'], 'required', 'message' => '{attribute} é obrigatório.'],
 
             [['estudante_id', 'coordenador_id'], 'integer'],
             [['data_criacao', 'data_envio', 'data_finalizacao'], 'safe'],

@@ -42,7 +42,7 @@ class ItemEquivalencia extends \yii\db\ActiveRecord
             [['disciplina_origem_ementa', 'justificativa', 'data_analise'], 'default', 'value' => null],
             [['parecer'], 'default', 'value' => 'PENDENTE'],
 
-            [['solicitacao_id', 'disciplina_origem_nome', 'disciplina_origem_carga_horaria', 'instituicao_origem', 'disciplina_destino_id'], 'required'],
+            [['solicitacao_id', 'disciplina_origem_nome', 'disciplina_origem_carga_horaria', 'instituicao_origem', 'disciplina_destino_id'], 'required', 'message' => '{attribute} é obrigatório.'],
 
             [['solicitacao_id', 'disciplina_origem_carga_horaria', 'disciplina_destino_id'], 'integer'],
             [['disciplina_origem_ementa', 'justificativa'], 'string'],
@@ -64,7 +64,7 @@ class ItemEquivalencia extends \yii\db\ActiveRecord
                 return $model->parecer === 'INDEFERIDO';
             }, 'whenClient' => "function (attribute, value) {
                 return $('#itemequivalencia-parecer').val() === 'INDEFERIDO';
-            }"],
+            }", 'message' => 'Justificativa é obrigatória para pareceres indeferidos.'],
         ];
     }
 
@@ -113,19 +113,28 @@ class ItemEquivalencia extends \yii\db\ActiveRecord
             return false;
         }
 
-        $parecerAnterior = $this->getOldAttribute('parecer');
-
-        // Se o parecer mudou para analisado, registra data/hora
-        if (
-            $this->parecer !== $parecerAnterior &&
-            in_array($this->parecer, ['DEFERIDO', 'INDEFERIDO'])
-        ) {
-            $this->data_analise = date('Y-m-d H:i:s');
-        }
-
-        // Se voltou para pendente, limpa data
+        // Preenchimento automático da data de análise
         if ($this->parecer === 'PENDENTE') {
             $this->data_analise = null;
+        } else {
+            if (empty($this->data_analise)) {
+                $this->data_analise = date('Y-m-d H:i:s');
+            }
+        }
+
+        // Se não for novo e a solicitação não estiver em edição,
+        // impedir alteração dos dados acadêmicos/origem/destino
+        if (!$insert && $this->solicitacao && $this->solicitacao->status !== 'EM_EDICAO') {
+            $original = self::findOne($this->id);
+
+            if ($original) {
+                $this->solicitacao_id = $original->solicitacao_id;
+                $this->disciplina_origem_nome = $original->disciplina_origem_nome;
+                $this->disciplina_origem_carga_horaria = $original->disciplina_origem_carga_horaria;
+                $this->disciplina_origem_ementa = $original->disciplina_origem_ementa;
+                $this->instituicao_origem = $original->instituicao_origem;
+                $this->disciplina_destino_id = $original->disciplina_destino_id;
+            }
         }
 
         return true;
@@ -173,6 +182,16 @@ class ItemEquivalencia extends \yii\db\ActiveRecord
         return $this->data_analise
             ? Yii::$app->formatter->asDatetime($this->data_analise, 'php:d/m/Y H:i')
             : 'Ainda não analisado';
+    }
+
+    public function podeEditarDadosAcademicos()
+    {
+        return $this->solicitacao && $this->solicitacao->status === 'EM_EDICAO';
+    }
+
+    public function podeEditarAnalise()
+    {
+        return $this->solicitacao && in_array($this->solicitacao->status, ['EM_EDICAO', 'EM_ANALISE', 'FINALIZADA']);
     }
 
 }
