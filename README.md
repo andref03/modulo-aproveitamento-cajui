@@ -17,6 +17,7 @@ O sistema contempla:
 - Diagrama relacional elaborado: `banco/DER_aproveitamento_estudos.png`
 - Arquivo de criação do banco: `banco/schema.sql`
 - Arquivo de dump/dados de teste: `banco/dados_teste.sql`
+- Arquivo de vídeo demonstrativo: `video/link-video.txt`
 
 ## Regras de negócio implementadas (resumo)
 - não permite enviar solicitação sem itens;
@@ -48,42 +49,33 @@ Se a pasta `vendor/` não estiver presente, execute:
 composer install
 ```
 
-### 4. Criar banco no PostgreSQL
-Exemplo:
-```bash
-createdb -U postgres aproveitamento_estudos
-```
+### 4. Criar banco e importar dados
+Para evitar erros de permissão ou senha, siga estas recomendações:
 
-### 5. Configurar conexão do banco
-Edite `config/db.php` com host, porta, banco, usuário e senha da máquina local.
+- Crie o banco usando seu usuário PostgreSQL local, por exemplo via `psql` ou algum gerenciador gráfico como pgAdmin ou DBeaver.
+- Nome sugerido: `aproveitamento_estudos`
+- Configure a conexão no Yii2 em `config/db.php` com host, porta, banco, usuário e senha:
 
-Exemplo:
 ```php
 return [
     'class' => 'yii\db\Connection',
     'dsn' => 'pgsql:host=localhost;port=5432;dbname=aproveitamento_estudos',
-    'username' => 'postgres',
+    'username' => 'seu_usuario',
     'password' => 'sua_senha',
     'charset' => 'utf8',
 ];
 ```
 
-### 6. Criar estrutura do banco
-```bash
-psql -U postgres -d aproveitamento_estudos -f banco/schema.sql
-```
+- Importe os arquivos SQL em qualquer gerenciador de banco ou via `psql` com o usuário correto, garantindo que ele tenha permissão de leitura dos arquivos:
+- Estrutura do banco: `banco/schema.sql`
+- Dados de teste: `banco/dados_teste.sql`
 
-### 7. Carregar dados de teste
-```bash
-psql -U postgres -d aproveitamento_estudos -f banco/dados_teste.sql
-```
-
-### 8. Subir a aplicação
+### 5. Subir a aplicação
 ```bash
 php yii serve --port=8080
 ```
 
-### 9. Acessar no navegador
+### 6. Acessar no navegador
 - `http://localhost:8080`
 
 ## Usuários de teste
