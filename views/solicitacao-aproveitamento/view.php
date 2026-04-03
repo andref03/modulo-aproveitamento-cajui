@@ -127,4 +127,40 @@ $this->params['breadcrumbs'][] = $this->title;
         </div>
     <?php endif; ?>
 
+    <hr>
+
+    <h3>Histórico de Ações</h3>
+
+    <?php 
+        $logs = $model->logAcaos;
+        if (count($logs) > 0):
+    ?>
+        <div class="table-responsive">
+            <table class="table table-sm table-striped">
+                <thead>
+                    <tr>
+                        <th style="width: 150px;">Data/Hora</th>
+                        <th>Usuário</th>
+                        <th>Descrição</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($logs as $log): ?>
+                        <tr>
+                            <td>
+                                <?= Yii::$app->formatter->asDatetime($log->data_hora, 'php:d/m/Y H:i') ?>
+                            </td>
+                            <td><?= Html::encode($log->usuario_nome) ?></td>
+                            <td><?= Html::encode($log->descricao) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php else: ?>
+        <div class="alert alert-info">
+            Nenhuma ação registrada.
+        </div>
+    <?php endif; ?>
+
 </div>

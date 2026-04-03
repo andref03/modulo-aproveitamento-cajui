@@ -222,4 +222,14 @@ class SolicitacaoAproveitamento extends \yii\db\ActiveRecord
             : '-';
     }
 
+    public function registrarAcao($descricao)
+    {
+        $log = new LogAcao();
+        $log->solicitacao_id = $this->id;
+        $log->descricao = $descricao;
+        $log->usuario_nome = Yii::$app->user->isGuest ? 'Anônimo' : Yii::$app->user->identity->username;
+        $log->data_hora = date('Y-m-d H:i:s');
+        return $log->save();
+    }
+
 }

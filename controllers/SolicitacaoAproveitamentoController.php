@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 use app\models\ItemEquivalencia;
+use app\models\LogAcao;
 use Yii;
 use app\models\SolicitacaoAproveitamento;
 use app\models\SolicitacaoAproveitamentoSearch;
@@ -80,9 +81,23 @@ class SolicitacaoAproveitamentoController extends Controller
     {
         $model = new SolicitacaoAproveitamento();
 
-        if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
-            Yii::$app->session->setFlash('success', 'Solicitação criada com sucesso.');
-            return $this->redirect(['update', 'id' => $model->id]);
+        if ($this->request->isPost && $model->load($this->request->post())) {
+            // Usa transação para garantir integridade
+            $transaction = Yii::$app->db->beginTransaction();
+            try {
+                if ($model->save()) {
+                    $model->registrarAcao('Solicitação criada com protocolo ' . $model->numero_protocolo);
+                    $transaction->commit();
+                    Yii::$app->session->setFlash('success', 'Solicitação criada com sucesso.');
+                    return $this->redirect(['update', 'id' => $model->id]);
+                } else {
+                    $transaction->rollBack();
+                    Yii::$app->session->setFlash('error', 'Erro ao criar solicitação.');
+                }
+            } catch (\Exception $e) {
+                $transaction->rollBack();
+                Yii::$app->session->setFlash('error', 'Erro ao criar solicitação: ' . $e->getMessage());
+            }
         }
 
         $model->loadDefaultValues();
@@ -157,13 +172,23 @@ class SolicitacaoAproveitamentoController extends Controller
             return $this->redirect(['update', 'id' => $model->id]);
         }
 
-        $model->status = 'EM_ANALISE';
-        $model->data_envio = date('Y-m-d H:i:s');
+        // Usa transação para garantir integridade
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            $model->status = 'EM_ANALISE';
+            $model->data_envio = date('Y-m-d H:i:s');
 
-        if ($model->save(false)) {
-            Yii::$app->session->setFlash('success', 'Solicitação enviada para análise com sucesso.');
-        } else {
-            Yii::$app->session->setFlash('error', 'Não foi possível enviar a solicitação.');
+            if ($model->save(false)) {
+                $model->registrarAcao('Solicitação enviada para análise. ' . count($model->itemEquivalencias) . ' item(ns).');
+                $transaction->commit();
+                Yii::$app->session->setFlash('success', 'Solicitação enviada para análise com sucesso.');
+            } else {
+                $transaction->rollBack();
+                Yii::$app->session->setFlash('error', 'Não foi possível enviar a solicitação.');
+            }
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            Yii::$app->session->setFlash('error', 'Erro ao enviar solicitação: ' . $e->getMessage());
         }
 
         return $this->redirect(['view', 'id' => $model->id]);
@@ -178,34 +203,49 @@ class SolicitacaoAproveitamentoController extends Controller
             return $this->redirect(['view', 'id' => $model->id]);
         }
 
-        $todosDeferidos = true;
-        $algumDeferido = false;
+        // Usa transação para garantir integridade
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            $todosDeferidos = true;
+            $algumDeferido = false;
+            $deferidos = 0;
+            $indeferidos = 0;
 
-        foreach ($model->itemEquivalencias as $item) {
-            if ($item->parecer !== 'DEFERIDO') {
-                $todosDeferidos = false;
+            foreach ($model->itemEquivalencias as $item) {
+                if ($item->parecer !== 'DEFERIDO') {
+                    $todosDeferidos = false;
+                    $indeferidos++;
+                } else {
+                    $algumDeferido = true;
+                    $deferidos++;
+                }
             }
 
-            if ($item->parecer === 'DEFERIDO') {
-                $algumDeferido = true;
+            if ($todosDeferidos) {
+                $model->resultado_final = 'DEFERIDO_TOTAL';
+            } elseif ($algumDeferido) {
+                $model->resultado_final = 'DEFERIDO_PARCIAL';
+            } else {
+                $model->resultado_final = 'INDEFERIDO_TOTAL';
             }
-        }
 
-        if ($todosDeferidos) {
-            $model->resultado_final = 'DEFERIDO_TOTAL';
-        } elseif ($algumDeferido) {
-            $model->resultado_final = 'DEFERIDO_PARCIAL';
-        } else {
-            $model->resultado_final = 'INDEFERIDO_TOTAL';
-        }
+            $model->status = 'FINALIZADA';
+            $model->data_finalizacao = date('Y-m-d H:i:s');
 
-        $model->status = 'FINALIZADA';
-        $model->data_finalizacao = date('Y-m-d H:i:s');
-
-        if ($model->save(false)) {
-            Yii::$app->session->setFlash('success', 'Solicitação finalizada com sucesso.');
-        } else {
-            Yii::$app->session->setFlash('error', 'Não foi possível finalizar a solicitação.');
+            if ($model->save(false)) {
+                $model->registrarAcao(
+                    "Solicitação finalizada com resultado {$model->resultado_final}. " .
+                    "Deferidos: {$deferidos}, Indeferidos: {$indeferidos}"
+                );
+                $transaction->commit();
+                Yii::$app->session->setFlash('success', 'Solicitação finalizada com sucesso.');
+            } else {
+                $transaction->rollBack();
+                Yii::$app->session->setFlash('error', 'Não foi possível finalizar a solicitação.');
+            }
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            Yii::$app->session->setFlash('error', 'Erro ao finalizar solicitação: ' . $e->getMessage());
         }
 
         return $this->redirect(['view', 'id' => $model->id]);
