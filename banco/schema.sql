@@ -5,6 +5,7 @@
 -- =========================================================
 
 -- Limpeza opcional
+DROP TABLE IF EXISTS usuario CASCADE;
 DROP TABLE IF EXISTS log_acao CASCADE;
 DROP TABLE IF EXISTS item_equivalencia CASCADE;
 DROP TABLE IF EXISTS solicitacao_aproveitamento CASCADE;
@@ -197,6 +198,49 @@ CREATE TABLE log_acao (
 );
 
 -- =========================================================
+-- TABELA: usuario
+-- Controla autenticação e perfil de acesso ao sistema
+-- Perfis:
+-- - ADMIN
+-- - ALUNO
+-- - COORDENADOR
+-- =========================================================
+CREATE TABLE usuario (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    senha_hash VARCHAR(255) NOT NULL,
+    perfil VARCHAR(20) NOT NULL,
+    estudante_id INT NULL UNIQUE,
+    coordenador_id INT NULL UNIQUE,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+
+    CONSTRAINT chk_usuario_perfil
+        CHECK (perfil IN ('ADMIN', 'ALUNO', 'COORDENADOR')),
+
+    CONSTRAINT chk_usuario_vinculo
+        CHECK (
+            (perfil = 'ADMIN' AND estudante_id IS NULL AND coordenador_id IS NULL)
+            OR
+            (perfil = 'ALUNO' AND estudante_id IS NOT NULL AND coordenador_id IS NULL)
+            OR
+            (perfil = 'COORDENADOR' AND coordenador_id IS NOT NULL AND estudante_id IS NULL)
+        ),
+
+    CONSTRAINT fk_usuario_estudante
+        FOREIGN KEY (estudante_id)
+        REFERENCES estudante(id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE,
+
+    CONSTRAINT fk_usuario_coordenador
+        FOREIGN KEY (coordenador_id)
+        REFERENCES coordenador(id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE
+);
+
+-- =========================================================
 -- ÍNDICES ÚTEIS
 -- =========================================================
 CREATE INDEX idx_estudante_curso_id
@@ -219,3 +263,12 @@ CREATE INDEX idx_item_disciplina_destino_id
 
 CREATE INDEX idx_log_solicitacao_id
     ON log_acao(solicitacao_id);
+
+CREATE INDEX idx_usuario_email
+    ON usuario(email);
+
+CREATE INDEX idx_usuario_estudante_id
+    ON usuario(estudante_id);
+
+CREATE INDEX idx_usuario_coordenador_id
+    ON usuario(coordenador_id);
