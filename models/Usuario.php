@@ -76,7 +76,13 @@ class Usuario extends ActiveRecord implements IdentityInterface
 
     public function validatePassword($password)
     {
-        return Yii::$app->security->validatePassword($password, $this->senha_hash);
+        // Se parecer um hash bcrypt válido, usa validatePassword do Yii
+        if (preg_match('/^\$2[axy]\$\d{2}\$[\.\/0-9A-Za-z]{53}$/', $this->senha_hash)) {
+            return Yii::$app->security->validatePassword($password, $this->senha_hash);
+        }
+
+        // Caso contrário, compara texto puro (modo desenvolvimento)
+        return $this->senha_hash === $password;
     }
 
     // =========================

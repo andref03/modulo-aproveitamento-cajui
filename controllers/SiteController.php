@@ -3,36 +3,24 @@
 namespace app\controllers;
 
 use Yii;
-use app\models\LoginForm;
 use yii\filters\AccessControl;
-use yii\filters\VerbFilter;
 use yii\web\Controller;
+use app\models\LoginForm;
 
 class SiteController extends Controller
 {
-    public function behaviors(): array
+    public function behaviors()
     {
         return [
             'access' => [
                 'class' => AccessControl::class,
-                'only' => ['logout', 'index'],
+                'only' => ['logout'],
                 'rules' => [
                     [
-                        'actions' => ['login', 'error'],
+                        'actions' => ['logout'],
                         'allow' => true,
+                        'roles' => ['@'], // só logado
                     ],
-                    [
-                        'actions' => ['index', 'logout'],
-                        'allow' => true,
-                        'roles' => ['@'],
-                    ],
-                ],
-            ],
-
-            'verbs' => [
-                'class' => VerbFilter::class,
-                'actions' => [
-                    'logout' => ['post'],
                 ],
             ],
         ];
@@ -66,11 +54,7 @@ class SiteController extends Controller
     public function actionLogout()
     {
         Yii::$app->user->logout();
+        Yii::$app->session->setFlash('success', 'Logout realizado com sucesso!');
         return $this->goHome();
-    }
-
-    public function actionError()
-    {
-        return $this->render('error');
     }
 }

@@ -14,21 +14,39 @@ $config = [
     'timeZone' => 'America/Sao_Paulo',
     'components' => [
         'request' => [
-            'cookieValidationKey' => 'uma-chave-secreta-aqui',
+            'cookieValidationKey' => 'alguma-chave-aqui',
         ],
-
+        'cache' => [
+            'class' => 'yii\caching\FileCache',
+        ],
         'user' => [
             'identityClass' => 'app\models\Usuario',
-            'enableAutoLogin' => false,
+            'enableAutoLogin' => true,
             'loginUrl' => ['site/login'],
         ],
-
-        'session' => [
-            'timeout' => 3600,
-        ],
-
         'errorHandler' => [
             'errorAction' => 'site/error',
+        ],
+        'mailer' => [
+            'class' => \yii\symfonymailer\Mailer::class,
+            'useFileTransport' => true,
+        ],
+        'log' => [
+            'traceLevel' => YII_DEBUG ? 3 : 0,
+            'targets' => [
+                [
+                    'class' => 'yii\log\FileTarget',
+                    'levels' => ['error', 'warning'],
+                ],
+            ],
+        ],
+
+        'db' => require __DIR__ . '/db.php',
+
+        'urlManager' => [
+            'enablePrettyUrl' => true,
+            'showScriptName' => false,
+            'rules' => [],
         ],
     ],
     'params' => $params,
