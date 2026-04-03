@@ -103,13 +103,31 @@ class ItemEquivalenciaController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
+        $parecerAnterior = $model->parecer;
 
         if ($this->request->isPost) {
-            if ($model->load($this->request->post()) && $model->save()) {
-                Yii::$app->session->setFlash('success', 'Item atualizado com sucesso.');
-                return $this->redirect(['solicitacao-aproveitamento/update', 'id' => $model->solicitacao_id]);
-            } else {
-                Yii::$app->session->setFlash('error', 'Não foi possível salvar o item. Verifique os dados informados.');
+            $transaction = Yii::$app->db->beginTransaction();
+            try {
+                if ($model->load($this->request->post()) && $model->save()) {
+                    // Registra log se o parecer foi mudado
+                    if ($parecerAnterior !== $model->parecer) {
+                        $descricao = "Item #" . $model->id . " analisado. Disciplina: {$model->disciplina_origem_nome}. " .
+                                   "Parecer: " . $model->parecerFormatado;
+                        if (!empty($model->justificativa)) {
+                            $descricao .= ". Justificativa: " . substr($model->justificativa, 0, 100) . "...";
+                        }
+                        $model->solicitacao->registrarAcao($descricao);
+                    }
+                    $transaction->commit();
+                    Yii::$app->session->setFlash('success', 'Item atualizado com sucesso.');
+                    return $this->redirect(['solicitacao-aproveitamento/update', 'id' => $model->solicitacao_id]);
+                } else {
+                    $transaction->rollBack();
+                    Yii::$app->session->setFlash('error', 'Não foi possível salvar o item. Verifique os dados informados.');
+                }
+            } catch (\Exception $e) {
+                $transaction->rollBack();
+                Yii::$app->session->setFlash('error', 'Erro ao salvar item: ' . $e->getMessage());
             }
         }
 

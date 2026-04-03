@@ -146,11 +146,24 @@ class ItemEquivalencia extends \yii\db\ActiveRecord
         if ($this->parecer === 'DEFERIDO') {
             $disciplinaDestino = $this->disciplinaDestino;
 
-            if ($disciplinaDestino && $this->disciplina_origem_carga_horaria < $disciplinaDestino->carga_horaria) {
-                $this->addError(
-                    'parecer',
-                    'Não é permitido deferir equivalência quando a carga horária da disciplina de origem é inferior à da disciplina de destino.'
-                );
+            if ($disciplinaDestino) {
+                // Regra: carga horária deve ser equivalente em 75% da disciplina de destino
+                $cargaHorariaMinima = $disciplinaDestino->carga_horaria * 0.75;
+                
+                if ($this->disciplina_origem_carga_horaria < $cargaHorariaMinima) {
+                    $this->addError(
+                        'parecer',
+                        "Não é permitido deferir equivalência. A carga horária da disciplina de origem ($this->disciplina_origem_carga_horaria h) deve ser pelo menos 75% da carga horária de destino ({$disciplinaDestino->carga_horaria}h, mínimo: " . ceil($cargaHorariaMinima) . "h)."
+                    );
+                }
+                
+                // Regra: se a disciplina destino possui pré-requisito, não pode ser aproveitada
+                if ($disciplinaDestino->pre_requisito_id !== null) {
+                    $this->addError(
+                        'parecer',
+                        "Não é permitido deferir equivalência. A disciplina de destino possui pré-requisito e não pode ser aproveitada."
+                    );
+                }
             }
         }
     }
