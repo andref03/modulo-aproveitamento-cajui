@@ -103,23 +103,43 @@ class ItemEquivalenciaController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
+        $solicitacao = $model->solicitacao;
+
+        // Só bloqueia se estiver em um estado inválido
+        if (!in_array($solicitacao->status, ['EM_EDICAO', 'EM_ANALISE', 'FINALIZADA'])) {
+            Yii::$app->session->setFlash('error', 'Não é possível editar este item no estado atual da solicitação.');
+            return $this->redirect(['solicitacao-aproveitamento/view', 'id' => $solicitacao->id]);
+        }
+
         $parecerAnterior = $model->parecer;
 
         if ($this->request->isPost) {
             $transaction = Yii::$app->db->beginTransaction();
+
             try {
                 if ($model->load($this->request->post()) && $model->save()) {
-                    // Registra log se o parecer foi mudado
+
+                    // Registra log se o parecer mudou
                     if ($parecerAnterior !== $model->parecer) {
-                        $descricao = "Item #" . $model->id . " analisado. Disciplina: {$model->disciplina_origem_nome}. " .
-                                   "Parecer: " . $model->parecerFormatado;
+                        $descricao = "Item #{$model->id} analisado. Disciplina: {$model->disciplina_origem_nome}. Parecer: {$model->parecerFormatado}";
+
                         if (!empty($model->justificativa)) {
-                            $descricao .= ". Justificativa: " . substr($model->justificativa, 0, 100) . "...";
+                            $descricao .= ". Justificativa: " . mb_substr($model->justificativa, 0, 100);
                         }
-                        $model->solicitacao->registrarAcao($descricao);
+
+                        if (method_exists($model->solicitacao, 'registrarAcao')) {
+                            $model->solicitacao->registrarAcao($descricao);
+                        }
                     }
+
                     $transaction->commit();
                     Yii::$app->session->setFlash('success', 'Item atualizado com sucesso.');
+
+                    // Se estiver finalizada ou em análise, faz mais sentido voltar para view
+                    if (in_array($solicitacao->status, ['EM_ANALISE', 'FINALIZADA'])) {
+                        return $this->redirect(['solicitacao-aproveitamento/view', 'id' => $model->solicitacao_id]);
+                    }
+
                     return $this->redirect(['solicitacao-aproveitamento/update', 'id' => $model->solicitacao_id]);
                 } else {
                     $transaction->rollBack();

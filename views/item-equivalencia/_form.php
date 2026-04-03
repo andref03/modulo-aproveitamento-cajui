@@ -19,15 +19,43 @@ $disciplinas = ArrayHelper::map(
 );
 
 $solicitacoes = ArrayHelper::map(
-    SolicitacaoAproveitamento::find()->all(),
+    SolicitacaoAproveitamento::find()->orderBy('id DESC')->all(),
     'id',
     'numero_protocolo'
 );
+
+$podeEditarDadosGerais = true;
+
+if (!$model->isNewRecord && $model->solicitacao) {
+    $podeEditarDadosGerais = ($model->solicitacao->status === 'EM_EDICAO');
+}
 ?>
 
 <div class="item-equivalencia-form">
 
-    <?php $form = ActiveForm::begin(); ?>
+    <?php if (!$model->isNewRecord && $model->solicitacao): ?>
+        <?php if ($model->solicitacao->status === 'EM_ANALISE'): ?>
+            <div class="alert alert-info">
+                Esta solicitação está <strong>em análise</strong>. Apenas o parecer e a justificativa podem ser alterados.
+            </div>
+        <?php elseif ($model->solicitacao->status === 'FINALIZADA'): ?>
+            <div class="alert alert-secondary">
+                Esta solicitação está <strong>finalizada</strong>. O item não pode mais ser alterado.
+            </div>
+        <?php endif; ?>
+    <?php endif; ?>
+    
+    <?php $form = ActiveForm::begin([
+        'options' => ['class' => 'form-horizontal'],
+        'fieldConfig' => [
+            'template' => "{label}\n{input}\n{error}",
+            'errorOptions' => [
+                'class' => 'text-danger small mt-1',
+                'tag' => 'div'
+            ],
+            'options' => ['class' => 'form-group mb-3'],
+        ],
+    ]); ?>
 
     <div class="card mb-4 p-3" style="border:1px solid #ddd; border-radius:8px;">
         <h4>Vínculo da Solicitação</h4>
@@ -35,7 +63,10 @@ $solicitacoes = ArrayHelper::map(
         <?php if ($model->isNewRecord && empty($model->solicitacao_id)): ?>
             <?= $form->field($model, 'solicitacao_id')->dropDownList(
                 $solicitacoes,
-                ['prompt' => 'Selecione a solicitação']
+                [
+                    'prompt' => 'Selecione a solicitação',
+                    'disabled' => !$podeEditarDadosGerais
+                ]
             ) ?>
         <?php else: ?>
             <p>
@@ -51,23 +82,27 @@ $solicitacoes = ArrayHelper::map(
 
         <?= $form->field($model, 'disciplina_origem_nome')->textInput([
             'maxlength' => true,
-            'placeholder' => 'Ex.: Cálculo I'
+            'placeholder' => 'Ex.: Cálculo I',
+            'readonly' => !$podeEditarDadosGerais
         ]) ?>
 
         <?= $form->field($model, 'disciplina_origem_carga_horaria')->textInput([
             'type' => 'number',
             'min' => 1,
-            'placeholder' => 'Ex.: 60'
+            'placeholder' => 'Ex.: 60',
+            'readonly' => !$podeEditarDadosGerais
         ]) ?>
 
         <?= $form->field($model, 'instituicao_origem')->textInput([
             'maxlength' => true,
-            'placeholder' => 'Ex.: Universidade X'
+            'placeholder' => 'Ex.: Universidade X',
+            'readonly' => !$podeEditarDadosGerais
         ]) ?>
 
         <?= $form->field($model, 'disciplina_origem_ementa')->textarea([
             'rows' => 5,
-            'placeholder' => 'Informe a ementa ou conteúdo programático da disciplina cursada anteriormente'
+            'placeholder' => 'Informe a ementa ou conteúdo programático da disciplina cursada anteriormente',
+            'readonly' => !$podeEditarDadosGerais
         ]) ?>
     </div>
 
@@ -76,8 +111,18 @@ $solicitacoes = ArrayHelper::map(
 
         <?= $form->field($model, 'disciplina_destino_id')->dropDownList(
             $disciplinas,
-            ['prompt' => 'Selecione a disciplina do IFNMG']
+            [
+                'prompt' => 'Selecione a disciplina do IFNMG',
+                'disabled' => !$podeEditarDadosGerais
+            ]
         ) ?>
+
+        <?php
+        // campo disabled não envia valor no POST, então garantimos via hidden input
+        if (!$podeEditarDadosGerais && !$model->isNewRecord):
+        ?>
+            <?= Html::activeHiddenInput($model, 'disciplina_destino_id') ?>
+        <?php endif; ?>
     </div>
 
     <div class="card mb-4 p-3" style="border:1px solid #ddd; border-radius:8px;">
@@ -94,6 +139,12 @@ $solicitacoes = ArrayHelper::map(
             'placeholder' => 'Obrigatória apenas em caso de indeferimento'
         ]) ?>
 
+        <?php if (!$model->isNewRecord && $model->data_analise): ?>
+            <p class="text-muted mt-2">
+                <strong>Última análise:</strong>
+                <?= Yii::$app->formatter->asDatetime($model->data_analise, 'php:d/m/Y H:i:s') ?>
+            </p>
+        <?php endif; ?>
     </div>
 
     <div class="form-group">
